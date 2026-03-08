@@ -3,6 +3,7 @@
 import { ResumeData } from '@/types/resume';
 import { Download } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 import ModernTemplate from './templates/ModernTemplate';
 import ProfessionalTemplate from './templates/ProfessionalTemplate';
@@ -23,48 +24,15 @@ export default function ResumePreview({ data }: Props) {
     const [downloading, setDownloading] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
 
-    const handleDownload = async () => {
-        setDownloading(true);
-        const element = contentRef.current;
-        if (!element) {
-            alert("Could not find resume content to download.");
-            setDownloading(false);
-            return;
-        }
-
-        try {
-            // Dynamically import html2pdf to prevent "window is not defined" SSR errors
-            const html2pdf = (await import('html2pdf.js')).default;
-
-            // Temporarily remove shadow and border for clean PDF
-            element.classList.remove('shadow-lg', 'border');
-
-            const opt = {
-                margin: 0,
-                filename: `${data.personalInfo.fullName || 'Resume'}.pdf`,
-                image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    // allowTaint often bypasses color parsing strictness in html2pdf bundle
-                    allowTaint: true
-                },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-            };
-
-            await html2pdf().set(opt).from(element).save();
-
-            // Restore classes
-            element.classList.add('shadow-lg', 'border');
-        } catch (err: any) {
-            console.error('Failed to generate PDF', err);
-            alert(`Failed to generate PDF: ${err.message || err}`);
-            // Restore classes on error
-            element.classList.add('shadow-lg', 'border');
-        } finally {
-            setDownloading(false);
-        }
-    };
+    const handleDownload = useReactToPrint({
+        contentRef: contentRef,
+        documentTitle: `${data.personalInfo.fullName || 'Resume'}`,
+        onBeforePrint: () => {
+            setDownloading(true);
+            return Promise.resolve();
+        },
+        onAfterPrint: () => setDownloading(false),
+    });
 
     const renderTemplate = () => {
         const template = data.templateId || 'modern';
