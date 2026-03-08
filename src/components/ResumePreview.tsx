@@ -3,7 +3,7 @@
 import { ResumeData } from '@/types/resume';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import { useState } from 'react';
 
 import ModernTemplate from './templates/ModernTemplate';
@@ -27,7 +27,11 @@ export default function ResumePreview({ data }: Props) {
     const handleDownload = async () => {
         setDownloading(true);
         const element = document.getElementById('resume-preview-content');
-        if (!element) return;
+        if (!element) {
+            alert("Could not find resume content to download.");
+            setDownloading(false);
+            return;
+        }
 
         try {
             // Temporarily remove shadow and border for clean PDF
@@ -36,13 +40,14 @@ export default function ResumePreview({ data }: Props) {
             const canvas = await html2canvas(element, {
                 scale: 2,
                 useCORS: true,
-                logging: false,
+                logging: true, // Enable logging to see what html2canvas does
                 backgroundColor: '#ffffff'
             });
 
             element.classList.add('shadow-lg', 'border');
 
             const imgData = canvas.toDataURL('image/png');
+
             const pdf = new jsPDF({
                 format: 'a4',
                 orientation: 'portrait'
@@ -53,8 +58,9 @@ export default function ResumePreview({ data }: Props) {
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`${data.personalInfo.fullName || 'Resume'}.pdf`);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to generate PDF', err);
+            alert(`Failed to generate PDF: ${err.message || err}`);
         } finally {
             setDownloading(false);
         }
