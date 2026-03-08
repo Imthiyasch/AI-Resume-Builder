@@ -2,9 +2,7 @@
 
 import { ResumeData } from '@/types/resume';
 import { Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 import ModernTemplate from './templates/ModernTemplate';
 import ProfessionalTemplate from './templates/ProfessionalTemplate';
@@ -23,10 +21,11 @@ interface Props {
 
 export default function ResumePreview({ data }: Props) {
     const [downloading, setDownloading] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const handleDownload = async () => {
         setDownloading(true);
-        const element = document.getElementById('resume-preview-content');
+        const element = contentRef.current;
         if (!element) {
             alert("Could not find resume content to download.");
             setDownloading(false);
@@ -34,33 +33,34 @@ export default function ResumePreview({ data }: Props) {
         }
 
         try {
+            // Dynamically import html2pdf to prevent "window is not defined" SSR errors
+            const html2pdf = (await import('html2pdf.js')).default;
+
             // Temporarily remove shadow and border for clean PDF
             element.classList.remove('shadow-lg', 'border');
 
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                logging: true, // Enable logging to see what html2canvas does
-                backgroundColor: '#ffffff'
-            });
+            const opt = {
+                margin: 0,
+                filename: `${data.personalInfo.fullName || 'Resume'}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    // allowTaint often bypasses color parsing strictness in html2pdf bundle
+                    allowTaint: true
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+            };
 
+            await html2pdf().set(opt).from(element).save();
+
+            // Restore classes
             element.classList.add('shadow-lg', 'border');
-
-            const imgData = canvas.toDataURL('image/png');
-
-            const pdf = new jsPDF({
-                format: 'a4',
-                orientation: 'portrait'
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`${data.personalInfo.fullName || 'Resume'}.pdf`);
         } catch (err: any) {
             console.error('Failed to generate PDF', err);
             alert(`Failed to generate PDF: ${err.message || err}`);
+            // Restore classes on error
+            element.classList.add('shadow-lg', 'border');
         } finally {
             setDownloading(false);
         }
@@ -99,6 +99,7 @@ export default function ResumePreview({ data }: Props) {
 
             {/* A4 Aspect Ratio Container */}
             <div
+                ref={contentRef}
                 id="resume-preview-content"
                 className="bg-white w-full shadow-lg border border-gray-200 overflow-hidden text-gray-900 relative"
                 style={{ minHeight: '297mm' }}
