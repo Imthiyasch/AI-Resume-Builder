@@ -36,6 +36,7 @@ export interface ResumeData {
         issuer: string;
         date: string;
     }[];
+    templateId?: string;
 }
 
 export const defaultResumeData: ResumeData = {
@@ -52,5 +53,6 @@ export const defaultResumeData: ResumeData = {
     education: [],
     skills: '',
     projects: [],
-    certifications: []
+    certifications: [],
+    templateId: 'modern'
 };

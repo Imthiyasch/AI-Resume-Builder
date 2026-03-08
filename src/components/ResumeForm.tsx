@@ -72,7 +72,27 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
     };
 
     return (
-        <div className="p-6 sm:p-8 space-y-10 max-w-3xl mx-auto text-zinc-100">
+        <div className="p-6 sm:p-8 space-y-10 max-w-4xl mx-auto text-zinc-100">
+            {/* Template Selection */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-bold text-white border-b border-zinc-800 pb-2">Select Template</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {['modern', 'professional', 'minimalist', 'creative', 'executive', 'tech', 'elegant', 'compact', 'bold', 'startup'].map((tpl) => (
+                        <button
+                            key={tpl}
+                            type="button"
+                            onClick={() => setData({ ...data, templateId: tpl })}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium capitalize border transition-all ${(data.templateId || 'modern') === tpl
+                                    ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.3)]'
+                                    : 'bg-black/40 border-white/10 text-zinc-400 hover:border-pink-400/50 hover:text-white'
+                                }`}
+                        >
+                            {tpl}
+                        </button>
+                    ))}
+                </div>
+            </section>
+
             {/* Personal Information */}
             <section className="space-y-4">
                 <h2 className="text-xl font-bold text-white border-b border-zinc-800 pb-2">Personal Details</h2>
