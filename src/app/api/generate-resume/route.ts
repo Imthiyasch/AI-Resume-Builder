@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
         const improvedContent = await generateResumeImprovement(prompt, content);
         return NextResponse.json({ improvedContent });
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
     }
 }

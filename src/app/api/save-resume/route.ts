@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ resume: result.data });
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
     }
 }
