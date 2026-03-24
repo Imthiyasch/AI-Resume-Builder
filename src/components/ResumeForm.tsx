@@ -87,6 +87,9 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
         switch (step) {
             case 'templates':
                 const templates = [
+                    { id: 'ats-clean', label: 'ATS Clean', color: '#f8f8f8', accent: '#2d6a4f', desc: '★ Max ATS score', ats: true },
+                    { id: 'ats-pro', label: 'ATS Pro', color: '#f0f4f8', accent: '#1a3a5c', desc: '★ Corporate ATS', ats: true },
+                    { id: 'ats-simple', label: 'ATS Simple', color: '#ffffff', accent: '#333333', desc: '★ Universal parse', ats: true },
                     { id: 'modern', label: 'Modern', color: '#1a1a2e', accent: '#e94560', desc: 'Classic centered header' },
                     { id: 'professional', label: 'Professional', color: '#0d1b2a', accent: '#1b4332', desc: 'Corporate two-column' },
                     { id: 'creative', label: 'Creative', color: '#134e4a', accent: '#f97316', desc: 'Colorful sidebar' },
@@ -97,55 +100,81 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
                     { id: 'bold', label: 'Bold', color: '#18181b', accent: '#facc15', desc: 'High contrast pop' },
                     { id: 'compact', label: 'Compact', color: '#1e1e2e', accent: '#89b4fa', desc: 'Fits more content' },
                     { id: 'startup', label: 'Startup', color: '#0a0a0a', accent: '#a3e635', desc: 'Modern & energetic' },
-                ];
+                ] as { id: string; label: string; color: string; accent: string; desc: string; ats?: boolean; light?: boolean }[];
                 return (
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-4"
                     >
-                        <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Choose a template — preview updates instantly</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            {templates.map((tpl) => (
-                                <button
-                                    key={tpl.id}
-                                    type="button"
-                                    onClick={() => setData({ ...data, templateId: tpl.id })}
-                                    className={`relative rounded-xl text-left border-2 transition-all overflow-hidden group ${
-                                        data.templateId === tpl.id
-                                            ? 'border-indigo-500 ring-2 ring-indigo-500/30 scale-[1.02]'
-                                            : 'border-white/5 hover:border-white/20'
-                                    }`}
-                                >
-                                    {/* Thumbnail preview */}
-                                    <div
-                                        className="h-20 w-full relative overflow-hidden"
-                                        style={{ background: tpl.color }}
+                        <div>
+                            <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                                ATS-Optimized (Recommended for job applications)
+                            </p>
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                                {templates.filter(t => t.ats).map((tpl) => (
+                                    <button
+                                        key={tpl.id}
+                                        type="button"
+                                        onClick={() => setData({ ...data, templateId: tpl.id })}
+                                        className={`relative rounded-xl text-left border-2 transition-all overflow-hidden group ${
+                                            data.templateId === tpl.id
+                                                ? 'border-emerald-500 ring-2 ring-emerald-500/30 scale-[1.02]'
+                                                : 'border-emerald-900/30 hover:border-emerald-500/40'
+                                        }`}
                                     >
-                                        {/* Simulated lines */}
-                                        <div className="absolute top-3 left-3 right-3 space-y-1.5">
-                                            <div className="h-2 rounded-full w-3/4" style={{ background: tpl.accent, opacity: 0.9 }} />
-                                            <div className="h-1 rounded-full w-1/2 bg-white/20" />
-                                            <div className="h-1 rounded-full w-2/3 bg-white/10" />
+                                        <div className="h-14 w-full relative overflow-hidden" style={{ background: tpl.color }}>
+                                            <div className="absolute top-2 left-2 right-2 space-y-1">
+                                                <div className="h-1.5 rounded w-3/4" style={{ background: tpl.accent }} />
+                                                <div className="h-1 rounded w-1/2 bg-gray-300" />
+                                                <div className="h-1 rounded w-2/3 bg-gray-200" />
+                                            </div>
                                         </div>
-                                        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: tpl.accent, opacity: 0.4 }} />
-                                    </div>
-                                    {/* Label */}
-                                    <div className="p-2.5 bg-zinc-900/80">
-                                        <div className="font-bold text-white text-xs capitalize">{tpl.label}</div>
-                                        <div className="text-[10px] text-zinc-500 mt-0.5">{tpl.desc}</div>
-                                    </div>
-                                    {/* Selected indicator */}
-                                    {data.templateId === tpl.id && (
-                                        <div
-                                            className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
-                                            style={{ background: tpl.accent }}
-                                        >
-                                            ✓
+                                        <div className="p-2 bg-zinc-900/90">
+                                            <div className="font-bold text-emerald-400 text-[10px]">{tpl.label}</div>
+                                            <div className="text-[9px] text-zinc-500">{tpl.desc}</div>
                                         </div>
-                                    )}
-                                </button>
-                            ))}
+                                        {data.templateId === tpl.id && (
+                                            <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[8px] font-bold">✓</div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-2">Visual Templates</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {templates.filter(t => !t.ats).map((tpl) => (
+                                    <button
+                                        key={tpl.id}
+                                        type="button"
+                                        onClick={() => setData({ ...data, templateId: tpl.id })}
+                                        className={`relative rounded-xl text-left border-2 transition-all overflow-hidden group ${
+                                            data.templateId === tpl.id
+                                                ? 'border-indigo-500 ring-2 ring-indigo-500/30 scale-[1.02]'
+                                                : 'border-white/5 hover:border-white/20'
+                                        }`}
+                                    >
+                                        <div className="h-20 w-full relative overflow-hidden" style={{ background: tpl.color }}>
+                                            <div className="absolute top-3 left-3 right-3 space-y-1.5">
+                                                <div className="h-2 rounded-full w-3/4" style={{ background: tpl.accent, opacity: 0.9 }} />
+                                                <div className="h-1 rounded-full w-1/2 bg-white/20" />
+                                                <div className="h-1 rounded-full w-2/3 bg-white/10" />
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: tpl.accent, opacity: 0.4 }} />
+                                        </div>
+                                        <div className="p-2.5 bg-zinc-900/80">
+                                            <div className="font-bold text-white text-xs capitalize">{tpl.label}</div>
+                                            <div className="text-[10px] text-zinc-500 mt-0.5">{tpl.desc}</div>
+                                        </div>
+                                        {data.templateId === tpl.id && (
+                                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg" style={{ background: tpl.accent }}>✓</div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 );

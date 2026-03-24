@@ -15,6 +15,9 @@ import ElegantTemplate from './templates/ElegantTemplate';
 import CompactTemplate from './templates/CompactTemplate';
 import BoldTemplate from './templates/BoldTemplate';
 import StartupTemplate from './templates/StartupTemplate';
+import ATSCleanTemplate from './templates/ATSCleanTemplate';
+import ATSProTemplate from './templates/ATSProTemplate';
+import ATSSimpleTemplate from './templates/ATSSimpleTemplate';
 
 interface Props {
     data: ResumeData;
@@ -46,6 +49,9 @@ export default function ResumePreview({ data }: Props) {
             case 'compact': return <CompactTemplate data={data} />;
             case 'bold': return <BoldTemplate data={data} />;
             case 'startup': return <StartupTemplate data={data} />;
+            case 'ats-clean': return <ATSCleanTemplate data={data} />;
+            case 'ats-pro': return <ATSProTemplate data={data} />;
+            case 'ats-simple': return <ATSSimpleTemplate data={data} />;
             case 'modern':
             default:
                 return <ModernTemplate data={data} />;

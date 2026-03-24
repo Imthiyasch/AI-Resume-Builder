@@ -6,9 +6,11 @@ import { supabase } from '@/lib/supabaseClient';
 import { ResumeData, defaultResumeData } from '@/types/resume';
 import ResumeForm from '@/components/ResumeForm';
 import ResumePreview from '@/components/ResumePreview';
-import { Loader2, ArrowLeft, Save, CheckCircle2, Eye, Pencil } from 'lucide-react';
+import ATSChecker from '@/components/ATSChecker';
+import { Loader2, ArrowLeft, Save, CheckCircle2, Eye, Pencil, Gauge } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ResumeEditor() {
     const router = useRouter();
@@ -20,7 +22,8 @@ export default function ResumeEditor() {
     const [saving, setSaving] = useState(false);
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [sessionToken, setSessionToken] = useState('');
-    const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit');
+    const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'ats'>('edit');
+    const [showATSOverlay, setShowATSOverlay] = useState(false);
     
     // Ref for debounce timer
     const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,7 +92,9 @@ export default function ResumeEditor() {
             const result = await res.json();
             if (!res.ok) throw new Error(result.error || 'Save failed');
             setSavedAt(new Date());
-            if (isManual) toast.success('Resume saved!');
+            if (isManual) {
+                toast.success('Resume saved!');
+            }
             if (result.resume && resumeId === 'new') {
                 router.push(`/resume/${result.resume.id}`);
             }
@@ -169,7 +174,22 @@ export default function ResumeEditor() {
                         >
                             <Eye className="w-3.5 h-3.5" /> Preview
                         </button>
+                        <button
+                            onClick={() => setMobileTab('ats')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mobileTab === 'ats' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                        >
+                            <Gauge className="w-3.5 h-3.5" /> ATS
+                        </button>
                     </div>
+
+                    {/* Desktop ATS Toggle */}
+                    <button
+                        onClick={() => setShowATSOverlay(!showATSOverlay)}
+                        className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${showATSOverlay ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-white/5 text-zinc-400 hover:text-white'}`}
+                    >
+                        <Gauge className="w-4 h-4" />
+                        ATS Checker
+                    </button>
 
                     <button
                         onClick={handleSave}
@@ -182,7 +202,7 @@ export default function ResumeEditor() {
                 </div>
             </div>
 
-            {/* Editor + Preview */}
+            {/* Editor + Preview + ATS */}
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row relative">
                 {/* Edit panel */}
                 <div className={`${mobileTab === 'edit' ? 'flex' : 'hidden'} lg:flex flex-1 lg:w-1/2 overflow-y-auto border-r border-zinc-800 bg-zinc-950 shadow-inner`}>
@@ -192,8 +212,34 @@ export default function ResumeEditor() {
                 </div>
 
                 {/* Preview panel */}
-                <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-1 lg:w-1/2 overflow-y-auto bg-zinc-900 p-4 lg:p-8 justify-center`}>
+                <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} lg:flex flex-1 lg:w-1/2 overflow-y-auto bg-zinc-900 p-4 lg:p-8 justify-center relative`}>
                     <ResumePreview data={data} />
+                    
+                    {/* Desktop ATS Overlay */}
+                    <AnimatePresence>
+                        {showATSOverlay && (
+                            <motion.div
+                                initial={{ x: '100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="absolute inset-y-0 right-0 w-96 z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]"
+                            >
+                                <ATSChecker data={data} />
+                                <button 
+                                    onClick={() => setShowATSOverlay(false)}
+                                    className="absolute top-6 right-6 p-2 bg-zinc-900/50 rounded-full hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-white"
+                                >
+                                    <ArrowLeft className="w-4 h-4 rotate-180" />
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Mobile ATS Tab */}
+                <div className={`${mobileTab === 'ats' ? 'flex' : 'hidden'} lg:hidden flex-1 overflow-y-auto bg-zinc-950`}>
+                    <ATSChecker data={data} />
                 </div>
             </div>
         </div>
