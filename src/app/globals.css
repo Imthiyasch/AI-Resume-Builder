@@ -1,99 +1,105 @@
 @import "tailwindcss";
 
-/* === Theme Variables === */
-:root,
-[data-theme="dark"] {
-  --bg-base: #09090b;
-  --bg-surface: rgba(24, 24, 27, 0.8);
-  --bg-card: rgba(15, 15, 18, 0.6);
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --border: rgba(255, 255, 255, 0.07);
-  --gradient-start: #312e81;
-  --gradient-mid: #4c1d95;
-  --gradient-end: #0f172a;
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Outfit", serif;
 }
 
-[data-theme="light"] {
-  --bg-base: #f1f5f9;
-  --bg-surface: rgba(255, 255, 255, 0.85);
-  --bg-card: rgba(255, 255, 255, 0.7);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border: rgba(0, 0, 0, 0.08);
-  --gradient-start: #dbeafe;
-  --gradient-mid: #ede9fe;
-  --gradient-end: #e0f2fe;
+:root {
+  /* Light Theme - CareerCraft Palette */
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  --accent-primary: #6366f1; /* Indigo 500 */
+  --accent-secondary: #a855f7; /* Purple 500 */
+  --accent-ats: #10b981; /* Emerald 500 */
+  --text-main: #0f172a; /* Slate 900 */
+  --text-muted: #64748b; /* Slate 500 */
+  --border-subtle: #e2e8f0; /* Slate 200 */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-premium: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 }
 
-/* === Base Styles === */
-html {
-  scroll-behavior: smooth;
+[data-theme='dark'] {
+  /* Dark Theme - CareerCraft Dark Palette */
+  --bg-app: #020617; /* Slate 950 */
+  --bg-card: #0f172a; /* Slate 900 */
+  --bg-sidebar: #0f172a;
+  --accent-primary: #818cf8; /* Indigo 400 */
+  --accent-secondary: #c084fc; /* Purple 400 */
+  --accent-ats: #34d399; /* Emerald 400 */
+  --text-main: #f8fafc; /* Slate 50 */
+  --text-muted: #94a3b8; /* Slate 400 */
+  --border-subtle: #1e293b; /* Slate 800 */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
-body {
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
-  background-attachment: fixed;
-  color: var(--text-primary);
-  min-height: 100vh;
-  transition: background 0.3s ease, color 0.3s ease;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-}
-
-/* === Surface Components === */
-.surface {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-}
-
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-}
-
-/* === Form Inputs === */
-.form-input {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  background: rgba(39, 39, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  color: white;
-  font-size: 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-}
-
-[data-theme="light"] .form-input {
-  background: rgba(241, 245, 249, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #0f172a;
-}
-
-.form-input:focus {
-  border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
-.form-input::placeholder {
-  color: rgba(161, 161, 170, 0.5);
-}
-
-/* === Custom Scrollbar === */
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
-
-/* === Print Styles === */
-@media print {
-  nav, button { display: none !important; }
-  body { background: white !important; }
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+@layer base {
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
+}
+
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-premium);
+  }
+
+  .premium-gradient-text {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .premium-button {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .premium-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+  }
+
+  .form-input {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

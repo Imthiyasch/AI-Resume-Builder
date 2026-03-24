@@ -1,151 +1,123 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { FileText, Sun, Moon, LayoutDashboard, LogOut, Github, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { FileText, LogOut, LayoutDashboard, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function Navbar() {
-    const router = useRouter();
-    const [user, setUser] = useState<any>(null);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isDark, setIsDark] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
 
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setIsDark(savedTheme === 'dark');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial theme
+    const savedTheme = localStorage.getItem('data-theme') as 'light' | 'dark' || 'light';
+    setTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
 
-    const toggleTheme = () => {
-        const newTheme = isDark ? 'light' : 'dark';
-        setIsDark(!isDark);
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        toast.success(`Switched to ${newTheme} mode`);
+    // Initial user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
     };
+  }, []);
 
-    const fetchProfile = async (userId: string) => {
-        const { data } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', userId)
-            .single();
-        setIsAdmin(data?.is_admin || false);
-    };
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.getItem('data-theme');
+    localStorage.setItem('data-theme', newTheme);
+    toast.success(`Theme switched to ${newTheme} mode`, { icon: newTheme === 'dark' ? '🌙' : '☀️' });
+  };
 
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            const currentUser = session?.user || null;
-            setUser(currentUser);
-            if (currentUser) fetchProfile(currentUser.id);
-        });
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+    toast.success('Logged out successfully');
+  };
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(
-            async (event: any, session: any) => {
-                const currentUser = session?.user || null;
-                setUser(currentUser);
-                if (currentUser) {
-                    fetchProfile(currentUser.id);
-                } else {
-                    setIsAdmin(false);
-                }
-            }
-        );
+  return (
+    <nav 
+      className={`sticky top-0 z-[100] transition-all duration-300 ${
+        isScrolled 
+          ? 'py-3 bg-[var(--glass-bg)] border-b border-[var(--glass-border)] backdrop-blur-md shadow-lg' 
+          : 'py-5 bg-transparent'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <FileText className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-black tracking-tight text-[var(--text-main)]">
+            Career<span className="text-indigo-500">Craft</span>
+          </span>
+        </Link>
 
-        return () => {
-            authListener.subscription.unsubscribe();
-        };
-    }, []);
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="/dashboard" className="text-sm font-semibold text-[var(--text-muted)] hover:text-indigo-500 transition-colors flex items-center gap-2">
+            Features
+          </Link>
+          <Link href="/dashboard" className="text-sm font-semibold text-[var(--text-muted)] hover:text-indigo-500 transition-colors">
+            Templates
+          </Link>
+          <Link href="/dashboard" className="text-sm font-semibold text-[var(--text-muted)] hover:text-indigo-500 transition-colors">
+            Pricing
+          </Link>
+        </div>
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        toast.success('Signed out successfully');
-        router.push('/');
-    };
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-indigo-500 hover:border-indigo-500/30 transition-all shadow-sm"
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
 
-    const avatarUrl = user?.user_metadata?.avatar_url;
-    const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
-
-    return (
-        <nav style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }} className="backdrop-blur-xl shadow-2xl sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-                <Link href="/" className="flex items-center space-x-2 text-white font-bold text-xl hover:scale-105 transition-transform duration-200">
-                    <div className="w-8 h-8 bg-gradient-to-tr from-pink-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
-                        <FileText className="w-5 h-5 text-white" />
-                    </div>
-                    <span>AI Resume Builder</span>
-                </Link>
-
-                <div className="flex items-center gap-3">
-                    {/* Theme toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
-                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                    >
-                        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                    </button>
-
-                    {user ? (
-                        <>
-                            <Link
-                                href="/dashboard"
-                                className="text-zinc-400 hover:text-white flex items-center gap-1.5 font-medium transition-colors"
-                            >
-                                <LayoutDashboard className="w-4 h-4" />
-                                <span className="hidden sm:inline">Dashboard</span>
-                            </Link>
-
-                            {isAdmin && (
-                                <Link
-                                    href="/admin"
-                                    className="text-pink-400 hover:text-pink-300 flex items-center gap-1.5 font-medium transition-colors"
-                                >
-                                    <ShieldCheck className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Admin</span>
-                                </Link>
-                            )}
-
-                            {/* User Avatar + Name */}
-                            <div className="flex items-center gap-2 pl-2 border-l border-white/10">
-                                {avatarUrl ? (
-                                    <img
-                                        src={avatarUrl}
-                                        alt={fullName}
-                                        className="w-8 h-8 rounded-full border-2 border-indigo-500/50 object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                                        {fullName[0].toUpperCase()}
-                                    </div>
-                                )}
-                                <span className="text-sm text-zinc-300 hidden md:inline font-medium max-w-[120px] truncate">
-                                    {fullName}
-                                </span>
-                            </div>
-
-                            <button
-                                onClick={handleLogout}
-                                className="text-zinc-400 hover:text-red-400 flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
-                                title="Sign out"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="hidden sm:inline">Logout</span>
-                            </button>
-                        </>
-                    ) : (
-                        <Link
-                            href="/login"
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-95"
-                        >
-                            Sign In with Google
-                        </Link>
-                    )}
-                </div>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/dashboard"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-sm font-bold text-[var(--text-main)] hover:border-indigo-500/30 transition-all shadow-sm"
+              >
+                <LayoutDashboard size={16} className="text-indigo-500" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="p-2.5 rounded-xl border border-rose-500/10 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                title="Logout"
+              >
+                <LogOut size={18} />
+              </button>
             </div>
-        </nav>
-    );
+          ) : (
+            <Link
+              href="/login"
+              className="px-5 py-2.5 rounded-xl premium-button text-sm font-bold shadow-xl flex items-center gap-2"
+            >
+              <Sparkles size={16} />
+              Get Started
+            </Link>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 }

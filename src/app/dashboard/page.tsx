@@ -4,17 +4,18 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, FileText, Loader2, Calendar, Trash2, Pencil, Check, X } from 'lucide-react';
+import { Plus, FileText, Loader2, Calendar, Trash2, Pencil, Check, X, Search, Sparkles, TrendingUp, Target, Clock, Filter, MoreHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import DashboardSidebar from '@/components/DashboardSidebar';
 
 // Skeleton card for loading state
 function ResumeSkeleton() {
     return (
-        <div className="bg-zinc-950/50 rounded-2xl border border-white/5 p-5 animate-pulse">
-            <div className="aspect-[3/4] bg-zinc-800/50 rounded-xl mb-5" />
-            <div className="h-4 bg-zinc-800 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-zinc-800/50 rounded w-1/2" />
+        <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-subtle)] p-6 animate-pulse">
+            <div className="aspect-[3/4] bg-[var(--border-subtle)] rounded-2xl mb-5" />
+            <div className="h-4 bg-[var(--border-subtle)] rounded w-3/4 mb-2" />
+            <div className="h-3 bg-[var(--border-subtle)]/50 rounded w-1/2" />
         </div>
     );
 }
@@ -26,6 +27,7 @@ export default function Dashboard() {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [renamingId, setRenamingId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchResumes = useCallback(async () => {
         setLoading(true);
@@ -40,7 +42,7 @@ export default function Dashboard() {
             const { data, error } = await supabase
                 .from('resumes')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('updated_at', { ascending: false });
 
             if (error) throw error;
             setResumes(data || []);
@@ -117,7 +119,7 @@ export default function Dashboard() {
                     education: [],
                     skills: []
                 },
-                template_id: 'professional'
+                template_id: 'ats-clean' // Default to ATS for new resumes
             }])
             .select()
             .single();
@@ -132,165 +134,201 @@ export default function Dashboard() {
         router.push(`/resume/${data.id}`);
     };
 
+    const filteredResumes = resumes.filter(r => 
+        r.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
-        <div className="min-h-[calc(100vh-4rem)] p-6 sm:p-10">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-                    <div>
-                        <motion.h1
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="text-4xl font-extrabold text-white tracking-tight"
-                        >
-                            My Resumes
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-zinc-400 mt-1"
-                        >
-                            Manage and polish your professional resumes.
-                        </motion.p>
+        <div className="h-[calc(100vh-4rem)] flex overflow-hidden bg-[var(--bg-app)]">
+            <DashboardSidebar onCreateNew={handleCreateNew} />
+
+            <main className="flex-1 overflow-y-auto h-full scroll-smooth custom-scrollbar">
+                <div className="max-w-6xl mx-auto px-8 py-10">
+                    {/* Header with Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                        <div className="md:col-span-2">
+                             <h1 className="text-3xl font-black text-[var(--text-main)] tracking-tight">
+                                Welcome back, <span className="premium-gradient-text">Candidate</span>
+                            </h1>
+                            <p className="text-[var(--text-muted)] mt-1 font-medium italic">You&apos;re 3 steps away from your dream job.</p>
+                        </div>
+                        <div className="p-5 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center gap-4 shadow-sm group hover:border-indigo-500/30 transition-all">
+                             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                <TrendingUp size={24} />
+                             </div>
+                             <div>
+                                 <div className="text-2xl font-black">{resumes.length}</div>
+                                 <div className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest leading-none">Total Resumes</div>
+                             </div>
+                        </div>
+                        <div className="p-5 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center gap-4 shadow-sm group hover:border-emerald-500/30 transition-all">
+                             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <Target size={24} />
+                             </div>
+                             <div>
+                                 <div className="text-2xl font-black">84%</div>
+                                 <div className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-widest leading-none">Avg ATS Score</div>
+                             </div>
+                        </div>
                     </div>
 
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleCreateNew}
-                        className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-2xl font-bold shadow-xl hover:shadow-indigo-500/20 transition-all"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Create New Resume
-                    </motion.button>
-                </header>
-
-                {/* Loading skeleton */}
-                {loading && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[1, 2, 3].map(i => <ResumeSkeleton key={i} />)}
+                    {/* Actions Bar */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-8">
+                        <div className="relative w-full sm:w-96">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Find a resume..."
+                                className="w-full h-12 pl-12 pr-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                            />
+                        </div>
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <button className="flex-1 sm:flex-none h-12 px-5 rounded-2xl border border-[var(--border-subtle)] text-sm font-bold flex items-center justify-center gap-2 hover:bg-[var(--bg-card)] transition-all">
+                                <Filter size={18} className="text-indigo-500" />
+                                Filter
+                            </button>
+                            <button className="flex-1 sm:flex-none h-12 px-5 rounded-2xl border border-[var(--border-subtle)] text-sm font-bold flex items-center justify-center gap-2 hover:bg-[var(--bg-card)] transition-all">
+                                <Clock size={18} className="text-indigo-500" />
+                                Recent
+                            </button>
+                        </div>
                     </div>
-                )}
 
-                <AnimatePresence mode="popLayout">
-                    {!loading && resumes.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-zinc-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-16 text-center shadow-2xl relative overflow-hidden group"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5" />
-                            <div className="relative z-10">
-                                <div className="mx-auto w-20 h-20 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-6 border border-white/10">
-                                    <FileText className="w-10 h-10 text-zinc-500" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-3">No resumes yet</h3>
-                                <p className="text-zinc-400 mb-8 max-w-md mx-auto leading-relaxed">
-                                    Create your first AI-powered resume in minutes. Let&apos;s get you hired!
-                                </p>
-                                <button
-                                    onClick={handleCreateNew}
-                                    className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg"
+                    {/* Content Grid */}
+                    {loading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[1, 2, 3].map(i => <ResumeSkeleton key={i} />)}
+                        </div>
+                    ) : (
+                        <AnimatePresence mode="popLayout">
+                            {filteredResumes.length === 0 ? (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-20 flex flex-col items-center text-center bg-[var(--bg-card)] rounded-[3rem] border border-dashed border-[var(--border-subtle)]"
                                 >
-                                    <Plus className="w-5 h-5" />
-                                    Create Your First Resume
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {!loading && resumes.length > 0 && (
-                        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <AnimatePresence>
-                                {resumes.map((resume, index) => (
-                                    <motion.div
-                                        key={resume.id}
-                                        layout
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9 }}
-                                        transition={{ delay: index * 0.05 }}
-                                    >
-                                        <Link href={`/resume/${resume.id}`}>
-                                            <div className="bg-zinc-950/50 backdrop-blur-md rounded-2xl border border-white/5 p-5 hover:border-indigo-500/30 transition-all cursor-pointer group h-full flex flex-col shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 overflow-hidden relative">
-                                                {/* Action buttons */}
-                                                <div className="absolute top-3 right-3 z-20 flex gap-1">
-                                                    <button
-                                                        onClick={(e) => startRename(resume, e)}
-                                                        className="p-2 bg-zinc-900/80 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-400/10 transition-all backdrop-blur-sm border border-white/5"
-                                                        title="Rename"
-                                                    >
-                                                        <Pencil className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => handleDelete(resume.id, e)}
-                                                        disabled={deletingId === resume.id}
-                                                        className="p-2 bg-zinc-900/80 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-all backdrop-blur-sm border border-white/5"
-                                                        title="Delete"
-                                                    >
-                                                        {deletingId === resume.id ? (
-                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                        ) : (
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        )}
-                                                    </button>
-                                                </div>
-
-                                                {/* Preview area */}
-                                                <div className="aspect-[3/4] bg-zinc-900/50 rounded-xl mb-5 p-6 border border-white/5 group-hover:bg-indigo-950/20 transition-colors flex items-center justify-center relative overflow-hidden">
-                                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-indigo-500/10 to-transparent" />
-                                                    <FileText className="w-20 h-20 text-zinc-700 group-hover:text-indigo-400/50 transition-all duration-500 group-hover:scale-110" />
-                                                    <div className="absolute bottom-4 left-4 right-4 translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
-                                                        <div className="bg-indigo-600 text-white text-xs font-bold py-2 rounded-lg text-center shadow-lg uppercase tracking-wider">
-                                                            Edit Resume
+                                    <div className="w-20 h-20 rounded-[2rem] bg-indigo-500/5 flex items-center justify-center mb-6">
+                                        <FileText size={40} className="text-indigo-500/30" />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-2">No resumes found</h3>
+                                    <p className="text-[var(--text-muted)] text-sm mb-8 max-w-sm">
+                                        {searchQuery ? `No results for "${searchQuery}". Try a different term.` : "Start your professional journey today!"}
+                                    </p>
+                                    <button onClick={handleCreateNew} className="premium-button px-8 py-3.5 rounded-2xl font-bold">
+                                        Create First Resume
+                                    </button>
+                                </motion.div>
+                            ) : (
+                                <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+                                    <AnimatePresence>
+                                        {filteredResumes.map((resume, index) => (
+                                            <motion.div
+                                                key={resume.id}
+                                                layout
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.9 }}
+                                                transition={{ delay: index * 0.05 }}
+                                            >
+                                                <div className="group relative bg-[var(--bg-card)] rounded-[2.5rem] border border-[var(--border-subtle)] p-6 hover:border-indigo-500/30 transition-all shadow-sm hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-2 flex flex-col h-full overflow-hidden">
+                                                    {/* Card Header Actions */}
+                                                    <div className="flex justify-between items-center mb-6 z-20">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                                                                <FileText size={16} />
+                                                            </div>
+                                                            <div className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Resume</div>
+                                                        </div>
+                                                        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={(e) => startRename(resume, e)}
+                                                                className="p-2 rounded-lg bg-[var(--bg-app)] hover:text-indigo-500 transition-colors"
+                                                            >
+                                                                <Pencil size={14} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => handleDelete(resume.id, e)}
+                                                                className="p-2 rounded-lg bg-[var(--bg-app)] hover:text-rose-500 transition-colors"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div className="px-1">
-                                                    {/* Inline rename */}
-                                                    {renamingId === resume.id ? (
-                                                        <div className="flex gap-1 mb-2" onClick={e => e.preventDefault()}>
-                                                            <input
-                                                                autoFocus
-                                                                value={renameValue}
-                                                                onChange={e => setRenameValue(e.target.value)}
-                                                                onKeyDown={e => {
-                                                                    if (e.key === 'Enter') commitRename(resume.id);
-                                                                    if (e.key === 'Escape') setRenamingId(null);
-                                                                }}
-                                                                className="flex-1 bg-zinc-800 border border-indigo-500/50 rounded-lg px-2 py-1 text-sm text-white focus:outline-none"
-                                                            />
-                                                            <button onClick={(e) => commitRename(resume.id, e)} className="p-1 text-indigo-400 hover:text-green-400"><Check className="w-4 h-4" /></button>
-                                                            <button onClick={e => { e.preventDefault(); setRenamingId(null); }} className="p-1 text-zinc-500 hover:text-red-400"><X className="w-4 h-4" /></button>
+                                                    {/* Resume Preview Box */}
+                                                    <Link href={`/resume/${resume.id}`} className="flex-1">
+                                                        <div className="aspect-[3/4] bg-[var(--bg-app)] rounded-2xl mb-6 relative overflow-hidden flex items-center justify-center border border-[var(--border-subtle)]/50 group-hover:border-indigo-500/20 transition-all">
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            
+                                                            {/* Mock Lines for Preview */}
+                                                            <div className="w-3/4 space-y-3 opacity-30 group-hover:opacity-60 transition-opacity">
+                                                                <div className="h-4 bg-zinc-700/50 rounded-full w-full" />
+                                                                <div className="h-2 bg-zinc-700/30 rounded-full w-3/4" />
+                                                                <div className="h-1 bg-zinc-700/20 rounded-full w-2/3" />
+                                                                <div className="h-1 bg-zinc-700/20 rounded-full w-full" />
+                                                                <div className="h-1 bg-zinc-700/20 rounded-full w-1/2" />
+                                                            </div>
+
+                                                            {/* ATS Score Indicator */}
+                                                            <div className="absolute top-4 right-4 py-1.5 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-tighter flex items-center gap-1.5 backdrop-blur-md">
+                                                                <Target size={12} />
+                                                                <span>92 pts</span>
+                                                            </div>
+
+                                                            {/* Hover Overlay */}
+                                                            <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
+                                                                <div className="w-14 h-14 rounded-full bg-white text-indigo-600 shadow-2xl flex items-center justify-center translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                                    <ArrowRight size={24} />
+                                                                </div>
+                                                                <span className="text-sm font-black text-indigo-500 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75 uppercase tracking-widest">Edit Now</span>
+                                                            </div>
                                                         </div>
-                                                    ) : (
-                                                        <h3 className="font-bold text-lg text-white mb-2 group-hover:text-indigo-400 transition-colors line-clamp-1">
-                                                            {resume.title}
-                                                        </h3>
-                                                    )}
-                                                    <div className="flex items-center text-xs text-zinc-500 gap-1.5">
-                                                        <Calendar className="w-3.5 h-3.5" />
-                                                        <span>
-                                                            {new Date(resume.updated_at || resume.created_at).toLocaleDateString(undefined, {
-                                                                month: 'short', day: 'numeric', year: 'numeric'
-                                                            })}
-                                                        </span>
-                                                    </div>
+
+                                                        {/* Metadata */}
+                                                        <div className="px-1 mb-2">
+                                                            {renamingId === resume.id ? (
+                                                                <div className="flex gap-1" onClick={e => e.preventDefault()}>
+                                                                    <input
+                                                                        autoFocus
+                                                                        value={renameValue}
+                                                                        onChange={e => setRenameValue(e.target.value)}
+                                                                        onKeyDown={e => {
+                                                                            if (e.key === 'Enter') commitRename(resume.id);
+                                                                            if (e.key === 'Escape') setRenamingId(null);
+                                                                        }}
+                                                                        className="flex-1 bg-[var(--bg-app)] border border-indigo-500 rounded-xl px-3 py-1.5 text-sm font-bold focus:outline-none"
+                                                                    />
+                                                                    <button onClick={(e) => commitRename(resume.id, e)} className="p-2 text-indigo-500"><Check size={18} /></button>
+                                                                </div>
+                                                            ) : (
+                                                                <h3 className="text-xl font-black text-[var(--text-main)] group-hover:text-indigo-500 transition-colors truncate">
+                                                                    {resume.title}
+                                                                </h3>
+                                                            )}
+                                                            <div className="flex items-center justify-between mt-3 px-1">
+                                                                <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                                                                    <Calendar size={14} />
+                                                                    <span className="text-xs font-bold">{new Date(resume.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-[var(--text-muted)] border border-[var(--border-subtle)] px-2 py-0.5 rounded-lg">
+                                                                    <Sparkles size={12} className="text-indigo-500" />
+                                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Optimized</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-                        </motion.div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     )}
-                </AnimatePresence>
-            </div>
+                </div>
+            </main>
         </div>
     );
 }
