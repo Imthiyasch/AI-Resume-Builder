@@ -66,26 +66,6 @@ export default function Home() {
             <Link href="/login" className="px-10 py-5 rounded-2xl premium-button text-lg font-bold shadow-2xl flex items-center justify-center gap-3">
               Get Started Now <ArrowRight size={20} />
             </Link>
-            <Link href="/dashboard" className="px-10 py-5 rounded-2xl bg-white dark:bg-zinc-900 border border-indigo-500/20 text-[var(--text-main)] text-lg font-bold hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all shadow-xl flex items-center justify-center">
-              Free Trial Now
-            </Link>
-          </motion.div>
-
-          {/* Partner Logos */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="w-full max-w-3xl pt-10 border-t border-[var(--border-subtle)]"
-          >
-            <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-8">Our Trusted Partners</p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-40 grayscale group hover:grayscale-0 transition-all duration-500">
-                <div className="flex items-center gap-2 font-bold text-xl"><Zap size={24} fill="currentColor" /> ChatGPT</div>
-                <div className="flex items-center gap-2 font-bold text-xl"><Star size={24} fill="currentColor" /> Gemini</div>
-                <div className="flex items-center gap-2 font-bold text-xl"><Shield size={24} fill="currentColor" /> DeepSeek</div>
-                <div className="flex items-center gap-2 font-bold text-xl"><Globe size={24} fill="currentColor" /> Claude</div>
-                <div className="flex items-center gap-2 font-bold text-xl"><Cpu size={24} fill="currentColor" /> Perplexity</div>
-            </div>
           </motion.div>
         </div>
       </section>
@@ -123,7 +103,7 @@ export default function Home() {
                 <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tight">Ready to craft your future?</h2>
                 <p className="text-zinc-400 text-lg mb-12 max-w-xl mx-auto">Join thousands of professionals landing jobs at top-tier companies with AI-powered resumes.</p>
                 <Link href="/login" className="inline-flex px-10 py-5 rounded-2xl bg-white text-zinc-950 text-lg font-bold hover:bg-zinc-100 transition-all shadow-2xl items-center gap-3">
-                    Start Building for Free <ArrowRight size={20} />
+                    Start Building Now <ArrowRight size={20} />
                 </Link>
             </div>
         </div>
