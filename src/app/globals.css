@@ -1,31 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* === Theme Variables === */
+:root,
+[data-theme="dark"] {
+  --bg-base: #09090b;
+  --bg-surface: rgba(24, 24, 27, 0.8);
+  --bg-card: rgba(15, 15, 18, 0.6);
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --border: rgba(255, 255, 255, 0.07);
+  --gradient-start: #312e81;
+  --gradient-mid: #4c1d95;
+  --gradient-end: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="light"] {
+  --bg-base: #f1f5f9;
+  --bg-surface: rgba(255, 255, 255, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: rgba(0, 0, 0, 0.08);
+  --gradient-start: #dbeafe;
+  --gradient-mid: #ede9fe;
+  --gradient-end: #e0f2fe;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* === Base Styles === */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* === Surface Components === */
+.surface {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+/* === Form Inputs === */
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(39, 39, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+[data-theme="light"] .form-input {
+  background: rgba(241, 245, 249, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+.form-input:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.form-input::placeholder {
+  color: rgba(161, 161, 170, 0.5);
+}
+
+/* === Custom Scrollbar === */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+
+/* === Print Styles === */
 @media print {
+  nav, button { display: none !important; }
+  body { background: white !important; }
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

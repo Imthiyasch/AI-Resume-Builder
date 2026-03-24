@@ -86,27 +86,63 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
 
         switch (step) {
             case 'templates':
+                const templates = [
+                    { id: 'modern', label: 'Modern', color: '#1a1a2e', accent: '#e94560', desc: 'Classic centered header' },
+                    { id: 'professional', label: 'Professional', color: '#0d1b2a', accent: '#1b4332', desc: 'Corporate two-column' },
+                    { id: 'creative', label: 'Creative', color: '#134e4a', accent: '#f97316', desc: 'Colorful sidebar' },
+                    { id: 'minimalist', label: 'Minimalist', color: '#fafaf9', accent: '#a8a29e', desc: 'Clean & spacious', light: true },
+                    { id: 'tech', label: 'Tech', color: '#0f0f23', accent: '#00d2ff', desc: 'Developer-focused' },
+                    { id: 'executive', label: 'Executive', color: '#1e293b', accent: '#c8a96e', desc: 'Senior & polished' },
+                    { id: 'elegant', label: 'Elegant', color: '#1c1917', accent: '#c084fc', desc: 'Serif & refined' },
+                    { id: 'bold', label: 'Bold', color: '#18181b', accent: '#facc15', desc: 'High contrast pop' },
+                    { id: 'compact', label: 'Compact', color: '#1e1e2e', accent: '#89b4fa', desc: 'Fits more content' },
+                    { id: 'startup', label: 'Startup', color: '#0a0a0a', accent: '#a3e635', desc: 'Modern & energetic' },
+                ];
                 return (
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="space-y-6"
+                        className="space-y-4"
                     >
-                        <div className="grid grid-cols-2 gap-4">
-                            {['modern', 'professional', 'minimalist', 'creative', 'executive', 'tech', 'elegant', 'compact', 'bold', 'startup'].map((tpl) => (
+                        <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Choose a template — preview updates instantly</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            {templates.map((tpl) => (
                                 <button
-                                    key={tpl}
+                                    key={tpl.id}
                                     type="button"
-                                    onClick={() => setData({ ...data, templateId: tpl })}
-                                    className={`relative p-4 rounded-2xl text-left border-2 transition-all overflow-hidden group ${data.templateId === tpl
-                                            ? 'border-indigo-500 bg-indigo-500/10'
-                                            : 'border-white/5 bg-zinc-900/50 hover:border-white/20'
-                                        }`}
+                                    onClick={() => setData({ ...data, templateId: tpl.id })}
+                                    className={`relative rounded-xl text-left border-2 transition-all overflow-hidden group ${
+                                        data.templateId === tpl.id
+                                            ? 'border-indigo-500 ring-2 ring-indigo-500/30 scale-[1.02]'
+                                            : 'border-white/5 hover:border-white/20'
+                                    }`}
                                 >
-                                    <div className="font-bold text-white capitalize mb-1">{tpl}</div>
-                                    <div className="text-xs text-zinc-500 line-clamp-1">Professional layout for {tpl} style.</div>
-                                    {data.templateId === tpl && (
-                                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                    {/* Thumbnail preview */}
+                                    <div
+                                        className="h-20 w-full relative overflow-hidden"
+                                        style={{ background: tpl.color }}
+                                    >
+                                        {/* Simulated lines */}
+                                        <div className="absolute top-3 left-3 right-3 space-y-1.5">
+                                            <div className="h-2 rounded-full w-3/4" style={{ background: tpl.accent, opacity: 0.9 }} />
+                                            <div className="h-1 rounded-full w-1/2 bg-white/20" />
+                                            <div className="h-1 rounded-full w-2/3 bg-white/10" />
+                                        </div>
+                                        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: tpl.accent, opacity: 0.4 }} />
+                                    </div>
+                                    {/* Label */}
+                                    <div className="p-2.5 bg-zinc-900/80">
+                                        <div className="font-bold text-white text-xs capitalize">{tpl.label}</div>
+                                        <div className="text-[10px] text-zinc-500 mt-0.5">{tpl.desc}</div>
+                                    </div>
+                                    {/* Selected indicator */}
+                                    {data.templateId === tpl.id && (
+                                        <div
+                                            className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
+                                            style={{ background: tpl.accent }}
+                                        >
+                                            ✓
+                                        </div>
                                     )}
                                 </button>
                             ))}

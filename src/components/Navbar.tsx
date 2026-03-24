@@ -14,28 +14,17 @@ export default function Navbar() {
     const [isDark, setIsDark] = useState(true);
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            setIsDark(false);
-            document.documentElement.classList.remove('dark');
-        } else {
-            setIsDark(true);
-            document.documentElement.classList.add('dark');
-        }
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setIsDark(savedTheme === 'dark');
+        document.documentElement.setAttribute('data-theme', savedTheme);
     }, []);
 
     const toggleTheme = () => {
-        const newDark = !isDark;
-        setIsDark(newDark);
-        if (newDark) {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-            localStorage.setItem('theme', 'light');
-        }
+        const newTheme = isDark ? 'light' : 'dark';
+        setIsDark(!isDark);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        toast.success(`Switched to ${newTheme} mode`);
     };
 
     const fetchProfile = async (userId: string) => {
@@ -81,7 +70,7 @@ export default function Navbar() {
     const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
     return (
-        <nav className="border-b border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl sticky top-0 z-50">
+        <nav style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }} className="backdrop-blur-xl shadow-2xl sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
                 <Link href="/" className="flex items-center space-x-2 text-white font-bold text-xl hover:scale-105 transition-transform duration-200">
                     <div className="w-8 h-8 bg-gradient-to-tr from-pink-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
