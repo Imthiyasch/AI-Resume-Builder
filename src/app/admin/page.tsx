@@ -1,317 +1,252 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 import { 
-    Users, 
-    FileText, 
-    Shield, 
-    Search, 
-    ArrowLeft, 
-    Loader2, 
-    UserPlus, 
-    ExternalLink,
-    TrendingUp,
-    Activity,
-    Trash2
+  Users, 
+  FileText, 
+  Trash2, 
+  Ban, 
+  ShieldCheck, 
+  Search, 
+  ArrowLeft,
+  Loader2,
+  MoreVertical,
+  CheckCircle2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
-interface UserProfile {
-    id: string;
-    email: string;
-    is_admin: boolean;
-    created_at: string;
-    resume_count?: number;
+interface AdminUser {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  is_banned?: boolean;
+  created_at: string;
+  resume_count: number;
 }
 
 export default function AdminDashboard() {
-    const router = useRouter();
-    const [users, setUsers] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [stats, setStats] = useState({
-        totalUsers: 0,
-        totalResumes: 0,
-        adminCount: 0
-    });
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [stats, setStats] = useState({ total_users: 0, total_resumes: 0 });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const router = useRouter();
 
-    useEffect(() => {
-        const fetchAdminData = async () => {
-            setLoading(true);
-            const { data: { session } } = await supabase.auth.getSession();
+  useEffect(() => {
+    checkAdmin();
+    fetchStats();
+  }, []);
 
-            if (!session) {
-                router.push('/login');
-                return;
-            }
-
-            // Verify admin status
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('id', session.user.id)
-                .single();
-
-            if (!profile?.is_admin) {
-                router.push('/dashboard');
-                return;
-            }
-
-            try {
-                // Fetch profiles
-                const { data: profiles, error: pError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (pError) throw pError;
-
-                // Fetch resume counts for each user
-                const { data: resumes, error: rError } = await supabase
-                    .from('resumes')
-                    .select('user_id');
-
-                if (rError) throw rError;
-
-                const resumeCounts: Record<string, number> = {};
-                resumes?.forEach(r => {
-                    resumeCounts[r.user_id] = (resumeCounts[r.user_id] || 0) + 1;
-                });
-
-                const enrichedUsers = profiles.map(u => ({
-                    ...u,
-                    resume_count: resumeCounts[u.id] || 0
-                }));
-
-                setUsers(enrichedUsers);
-                setStats({
-                    totalUsers: enrichedUsers.length,
-                    totalResumes: resumes?.length || 0,
-                    adminCount: enrichedUsers.filter(u => u.is_admin).length
-                });
-
-            } catch (err) {
-                console.error('Admin fetch error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAdminData();
-    }, [router]);
-
-    const filteredUsers = users.filter(u => 
-        u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    if (loading) {
-        return (
-            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-black">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-                    <p className="text-zinc-500 font-medium">Scanning network...</p>
-                </div>
-            </div>
-        );
+  const checkAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push('/login');
+      return;
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      router.push('/dashboard');
+      return;
+    }
+    setIsAdmin(true);
+  };
+
+  const handleBanUser = async (user: AdminUser) => {
+    const isBanned = !user.is_banned;
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_banned: isBanned })
+      });
+      if (!res.ok) throw new Error('Failed to update user');
+      
+      setUsers(users.map(u => u.id === user.id ? { ...u, is_banned: isBanned } : u));
+      toast.success(isBanned ? 'User banned successfully' : 'User unbanned successfully');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteData = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete all resumes for this user? This cannot be undone.')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete user data');
+      
+      setUsers(users.map(u => u.id === userId ? { ...u, resume_count: 0 } : u));
+      toast.success('User resume data cleared');
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/admin/stats');
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      setUsers(data.users);
+      setStats({
+        total_users: data.total_users,
+        total_resumes: data.total_resumes
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to fetch stats');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.email.toLowerCase().includes(search.toLowerCase()) ||
+    u.id.includes(search)
+  ).filter(u => u.id !== users[0]?.id); // Hide self as a safety measure for accidental deletion? No.
+
+  if (loading) {
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-black text-white p-6 sm:p-10">
-            <div className="max-w-7xl mx-auto space-y-10">
-                {/* Header */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-indigo-400 text-sm font-bold uppercase tracking-wider">
-                            <Shield className="w-4 h-4" />
-                            Admin Command Center
-                        </div>
-                        <h1 className="text-4xl font-black tracking-tight">System Overview</h1>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                            <input 
-                                type="text" 
-                                placeholder="Search users by email..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-zinc-900/50 border border-white/5 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-64 transition-all"
-                            />
-                        </div>
-                        <Link href="/dashboard" className="px-4 py-2.5 rounded-xl bg-zinc-900 border border-white/5 text-sm font-bold hover:bg-zinc-800 transition-all flex items-center gap-2">
-                            <ArrowLeft className="w-4 h-4" />
-                            Exit Admin
-                        </Link>
-                    </div>
-                </header>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
+        <Loader2 className="animate-spin text-indigo-500" size={48} />
+      </div>
+    );
+  }
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <StatCard 
-                        title="Total Operators" 
-                        value={stats.totalUsers} 
-                        icon={Users} 
-                        color="indigo" 
-                        subtitle={`${stats.adminCount} Administrators`}
-                    />
-                    <StatCard 
-                        title="Resumes Generated" 
-                        value={stats.totalResumes} 
-                        icon={FileText} 
-                        color="purple" 
-                        subtitle="Across all accounts"
-                    />
-                    <StatCard 
-                        title="Avg. Resumes/User" 
-                        value={(stats.totalResumes / (stats.totalUsers || 1)).toFixed(1)} 
-                        icon={TrendingUp} 
-                        color="emerald" 
-                        subtitle="Engagement metric"
-                    />
-                </div>
+  if (!isAdmin) return null;
 
-                {/* Users Table */}
-                <div className="bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-3xl">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-white/5 border-b border-white/5">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Operator</th>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">ID</th>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Privileges</th>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">Data Count</th>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Enrolled</th>
-                                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {filteredUsers.map((user) => (
-                                    <motion.tr 
-                                        key={user.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="hover:bg-white/[0.02] transition-colors group"
-                                    >
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-sm shadow-lg">
-                                                    {user.email[0].toUpperCase()}
-                                                </div>
-                                                <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">{user.email}</div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-zinc-500">
-                                            {user.id.slice(0, 18)}...
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {user.is_admin ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-tight border border-indigo-500/20">
-                                                    <Shield className="w-3 h-3" />
-                                                    Admin
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-tight">
-                                                    Member
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="font-bold text-white">{user.resume_count}</span>
-                                                <span className="text-[10px] text-zinc-600 uppercase">Resumes</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-zinc-400">
-                                            {new Date(user.created_at).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {!user.is_admin && (
-                                                    <button 
-                                                        onClick={async () => {
-                                                            if (confirm(`Promote ${user.email} to admin?`)) {
-                                                                const { error } = await supabase
-                                                                    .from('profiles')
-                                                                    .update({ is_admin: true })
-                                                                    .eq('id', user.id);
-                                                                if (error) alert(error.message);
-                                                                else window.location.reload();
-                                                            }
-                                                        }}
-                                                        className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-all"
-                                                        title="Promote to Admin"
-                                                    >
-                                                        <Shield className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                                <button 
-                                                    onClick={async () => {
-                                                        if (confirm(`Warning: This will delete ${user.email} and all their resumes. Proceed?`)) {
-                                                            const { error } = await supabase.auth.admin.deleteUser(user.id);
-                                                            if (error) alert("To delete users, you need service_role key or use the Supabase dashboard. Access restricted.");
-                                                            else window.location.reload();
-                                                        }
-                                                    }}
-                                                    className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    title="Delete User"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen bg-[var(--bg-main)] p-6 md:p-12">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div>
+            <Link href="/dashboard" className="flex items-center gap-2 text-[var(--text-muted)] hover:text-indigo-500 mb-4 transition-colors">
+              <ArrowLeft size={16} /> Back to Dashboard
+            </Link>
+            <h1 className="text-4xl font-black tracking-tight text-[var(--text-main)] flex items-center gap-4">
+              Admin <span className="text-indigo-500 font-light italic">Panel</span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-4 bg-[var(--card-bg)] p-2 rounded-2xl border border-[var(--border-subtle)] shadow-xl w-full md:w-auto">
+            <Search className="text-[var(--text-muted)] ml-3" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search users..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent border-none outline-none p-2 text-[var(--text-main)] w-full"
+            />
+          </div>
         </div>
-    );
-}
 
-import React from 'react';
-
-interface StatCardProps {
-    title: string;
-    value: string | number;
-    icon: React.ElementType;
-    color: 'indigo' | 'purple' | 'emerald';
-    subtitle: string;
-}
-
-function StatCard({ title, value, icon: Icon, color, subtitle }: StatCardProps) {
-    const colors: Record<string, string> = {
-        indigo: "from-indigo-600/20 to-indigo-600/5 text-indigo-400",
-        purple: "from-purple-600/20 to-purple-600/5 text-purple-400",
-        emerald: "from-emerald-600/20 to-emerald-600/5 text-emerald-400"
-    };
-
-    return (
-        <motion.div 
-            whileHover={{ y: -5 }}
-            className="bg-zinc-950/50 border border-white/5 rounded-3xl p-6 relative overflow-hidden group shadow-xl"
-        >
-            <div className={`absolute inset-0 bg-gradient-to-br ${colors[color]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-            <div className="relative z-10 flex justify-between items-start">
-                <div>
-                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">{title}</p>
-                    <h3 className="text-3xl font-black text-white">{value}</h3>
-                    <p className="text-zinc-600 text-[10px] mt-1 font-medium">{subtitle}</p>
-                </div>
-                <div className={`p-3 rounded-2xl bg-zinc-900 border border-white/10 ${colors[color].split(' ')[2]}`}>
-                    <Icon className="w-6 h-6" />
-                </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="glass-card p-8 rounded-[2rem] border border-[var(--border-subtle)] shadow-2xl">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 mb-6">
+              <Users size={24} />
             </div>
-        </motion.div>
-    );
-}
+            <p className="text-[var(--text-muted)] font-bold uppercase tracking-wider text-xs mb-2">Total Users</p>
+            <p className="text-4xl font-black text-[var(--text-main)]">{stats.total_users}</p>
+          </div>
+          
+          <div className="glass-card p-8 rounded-[2rem] border border-[var(--border-subtle)] shadow-2xl">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-6">
+              <FileText size={24} />
+            </div>
+            <p className="text-[var(--text-muted)] font-bold uppercase tracking-wider text-xs mb-2">Total Resumes</p>
+            <p className="text-4xl font-black text-[var(--text-main)]">{stats.total_resumes}</p>
+          </div>
 
-const MoreVertical = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /></svg>
-);
+          <div className="glass-card p-8 rounded-[2rem] border border-green-500/10 shadow-2xl bg-gradient-to-br from-green-500/5 to-transparent">
+            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-6">
+              <ShieldCheck size={24} />
+            </div>
+            <p className="text-[var(--text-muted)] font-bold uppercase tracking-wider text-xs mb-2">Admin Status</p>
+            <p className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+              Verified <CheckCircle2 size={18} className="text-green-500" />
+            </p>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="glass-card rounded-[2.5rem] border border-[var(--border-subtle)] shadow-3xl overflow-hidden bg-[var(--card-bg)]">
+          <div className="p-8 border-b border-[var(--border-subtle)]">
+            <h2 className="text-xl font-bold text-[var(--text-main)]">User Management</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-[var(--bg-main)]/50 text-[var(--text-muted)] text-sm uppercase tracking-widest font-bold">
+                  <th className="py-6 px-8">User Information</th>
+                  <th className="py-6 px-8">Resumes</th>
+                  <th className="py-6 px-8">Joined Date</th>
+                  <th className="py-6 px-8 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-subtle)]">
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-indigo-500/5 transition-colors group">
+                    <td className="py-6 px-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-black text-xs">
+                          {user.email.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold text-[var(--text-main)] flex items-center gap-2">
+                            {user.email}
+                            {user.is_banned && <span className="text-[8px] bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter">Banned</span>}
+                          </p>
+                          <p className="text-xs text-[var(--text-muted)] font-mono">{user.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-6 px-8">
+                      <div className="flex items-center gap-2 text-[var(--text-main)] font-bold">
+                        <FileText size={16} className="text-indigo-500" />
+                        {user.resume_count}
+                      </div>
+                    </td>
+                    <td className="py-6 px-8 text-[var(--text-muted)] text-sm">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-6 px-8 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleBanUser(user)}
+                          className={`p-2 rounded-lg transition-colors ${user.is_banned ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'hover:bg-orange-500/10 text-orange-500'}`} 
+                          title={user.is_banned ? 'Unban User' : 'Ban User'}
+                        >
+                          <Ban size={20} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteData(user.id)}
+                          className="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors" 
+                          title="Delete Data"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

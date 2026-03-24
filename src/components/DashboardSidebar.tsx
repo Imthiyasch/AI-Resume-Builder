@@ -11,8 +11,11 @@ import {
   History, 
   Sparkles,
   Search,
-  Gauge
+  Gauge,
+  Shield
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 interface SidebarProps {
   onCreateNew: () => void;
@@ -20,6 +23,22 @@ interface SidebarProps {
 
 export default function DashboardSidebar({ onCreateNew }: SidebarProps) {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+        setIsAdmin(!!profile?.is_admin);
+      }
+    }
+    checkAdmin();
+  }, []);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -78,6 +97,19 @@ export default function DashboardSidebar({ onCreateNew }: SidebarProps) {
         </div>
 
         <div className="pt-4 border-t border-[var(--border-subtle)] space-y-1">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                pathname === '/admin' 
+                  ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/10' 
+                  : 'text-indigo-500 hover:bg-indigo-500/10'
+              }`}
+            >
+              <Shield size={20} />
+              Admin Panel
+            </Link>
+          )}
           {bottomItems.map((item) => (
             <Link
               key={item.label}

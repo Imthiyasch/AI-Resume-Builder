@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, FileText, Loader2, Calendar, Trash2, Pencil, Check, X, Search, Sparkles, TrendingUp, Target, Clock, Filter, MoreHorizontal } from 'lucide-react';
+import { Plus, FileText, Loader2, Calendar, Trash2, Pencil, Check, X, Search, Sparkles, TrendingUp, Target, Clock, Filter, MoreHorizontal, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -39,6 +39,20 @@ export default function Dashboard() {
         }
 
         try {
+            // Check if user is banned
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_banned')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profile?.is_banned) {
+                toast.error('Your account has been suspended. Please contact support.');
+                await supabase.auth.signOut();
+                router.push('/login');
+                return;
+            }
+
             const { data, error } = await supabase
                 .from('resumes')
                 .select('*')
