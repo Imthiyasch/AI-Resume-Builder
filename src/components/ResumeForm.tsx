@@ -2,8 +2,9 @@
 
 import { ResumeData } from '@/types/resume';
 import { useState } from 'react';
-import { Sparkles, Plus, Trash2, ChevronLeft, ChevronRight, User, Briefcase, GraduationCap, Code, Trophy, Layout } from 'lucide-react';
+import { Sparkles, Plus, Trash2, ChevronLeft, ChevronRight, User, Briefcase, GraduationCap, Code, Layout, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface Props {
     data: ResumeData;
@@ -31,7 +32,9 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
     };
 
     const generateAI = async (fieldId: string, promptInfo: string, currentContent: string, onUpdate: (newContent: string) => void) => {
+        if (loadingAI) return; // Prevent duplicate requests
         setLoadingAI(fieldId);
+        const toastId = toast.loading('AI is rewriting... ✨');
         try {
             const res = await fetch('/api/generate-resume', {
                 method: 'POST',
@@ -39,10 +42,13 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
                 body: JSON.stringify({ prompt: promptInfo, content: currentContent })
             });
             const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'AI request failed');
             if (result.improvedContent) {
                 onUpdate(result.improvedContent.trim());
+                toast.success('Content enhanced by AI!', { id: toastId });
             }
         } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'AI enhancement failed', { id: toastId });
             console.error(err);
         } finally {
             setLoadingAI(null);
@@ -144,10 +150,14 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
                                 <button
                                     type="button"
                                     onClick={() => generateAI('summary', `Create a professional summary for: ${data.personalInfo.fullName}. Skills: ${data.skills}.`, data.summary, (res) => setData({ ...data, summary: res }))}
-                                    disabled={loadingAI === 'summary'}
-                                    className="flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                                    disabled={!!loadingAI}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-50"
                                 >
-                                    <Sparkles className="w-3.5 h-3.5" />
+                                    {loadingAI === 'summary' ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                    )}
                                     {loadingAI === 'summary' ? 'Writing...' : 'AI Rewrite'}
                                 </button>
                             </div>
@@ -188,11 +198,15 @@ export default function ResumeForm({ data, setData, sessionToken }: Props) {
                                         <span className="text-xs font-bold text-zinc-500 uppercase">Achievements</span>
                                         <button
                                             onClick={() => generateAI(`exp-${exp.id}`, `Rewrite bullet points for ${exp.position} at ${exp.company}.`, exp.description, (res) => updateArrayItem('experience', exp.id, 'description', res))}
-                                            disabled={loadingAI === `exp-${exp.id}`}
-                                            className="flex items-center gap-1 text-xs text-indigo-400 font-bold"
+                                            disabled={!!loadingAI}
+                                            className="flex items-center gap-1 text-xs text-indigo-400 font-bold disabled:opacity-50"
                                         >
-                                            <Sparkles className="w-3 h-3" />
-                                            AI Enhance
+                                            {loadingAI === `exp-${exp.id}` ? (
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                            ) : (
+                                                <Sparkles className="w-3 h-3" />
+                                            )}
+                                            {loadingAI === `exp-${exp.id}` ? 'Enhancing...' : 'AI Enhance'}
                                         </button>
                                     </div>
                                     <textarea

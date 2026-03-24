@@ -4,25 +4,52 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { FileText, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { FileText, LogOut, LayoutDashboard, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Navbar() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isDark, setIsDark] = useState(true);
 
     useEffect(() => {
-        const fetchProfile = async (userId: string) => {
-            const { data } = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('id', userId)
-                .single();
-            setIsAdmin(data?.is_admin || false);
-        };
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            setIsDark(false);
+            document.documentElement.classList.remove('dark');
+        } else {
+            setIsDark(true);
+            document.documentElement.classList.add('dark');
+        }
+    }, []);
 
+    const toggleTheme = () => {
+        const newDark = !isDark;
+        setIsDark(newDark);
+        if (newDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+            localStorage.setItem('theme', 'light');
+        }
+    };
+
+    const fetchProfile = async (userId: string) => {
+        const { data } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', userId)
+            .single();
+        setIsAdmin(data?.is_admin || false);
+    };
+
+    useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
-            const currentUser = (session as any)?.user || null;
+            const currentUser = session?.user || null;
             setUser(currentUser);
             if (currentUser) fetchProfile(currentUser.id);
         });
@@ -46,8 +73,12 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
+        toast.success('Signed out successfully');
         router.push('/');
     };
+
+    const avatarUrl = user?.user_metadata?.avatar_url;
+    const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
     return (
         <nav className="border-b border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl sticky top-0 z-50">
@@ -58,7 +89,17 @@ export default function Navbar() {
                     </div>
                     <span>AI Resume Builder</span>
                 </Link>
-                <div className="flex items-center space-x-6">
+
+                <div className="flex items-center gap-3">
+                    {/* Theme toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    >
+                        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </button>
+
                     {user ? (
                         <>
                             <Link
@@ -66,7 +107,7 @@ export default function Navbar() {
                                 className="text-zinc-400 hover:text-white flex items-center gap-1.5 font-medium transition-colors"
                             >
                                 <LayoutDashboard className="w-4 h-4" />
-                                Dashboard
+                                <span className="hidden sm:inline">Dashboard</span>
                             </Link>
 
                             {isAdmin && (
@@ -75,33 +116,44 @@ export default function Navbar() {
                                     className="text-pink-400 hover:text-pink-300 flex items-center gap-1.5 font-medium transition-colors"
                                 >
                                     <ShieldCheck className="w-4 h-4" />
-                                    Admin
+                                    <span className="hidden sm:inline">Admin</span>
                                 </Link>
                             )}
+
+                            {/* User Avatar + Name */}
+                            <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                                {avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={fullName}
+                                        className="w-8 h-8 rounded-full border-2 border-indigo-500/50 object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                        {fullName[0].toUpperCase()}
+                                    </div>
+                                )}
+                                <span className="text-sm text-zinc-300 hidden md:inline font-medium max-w-[120px] truncate">
+                                    {fullName}
+                                </span>
+                            </div>
 
                             <button
                                 onClick={handleLogout}
                                 className="text-zinc-400 hover:text-red-400 flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                title="Sign out"
                             >
                                 <LogOut className="w-4 h-4" />
-                                Logout
+                                <span className="hidden sm:inline">Logout</span>
                             </button>
                         </>
                     ) : (
-                        <>
-                            <Link
-                                href="/login"
-                                className="text-zinc-400 hover:text-white font-medium transition-colors"
-                            >
-                                Log In
-                            </Link>
-                            <Link
-                                href="/signup"
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-95"
-                            >
-                                Get Started
-                            </Link>
-                        </>
+                        <Link
+                            href="/login"
+                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-95"
+                        >
+                            Sign In with Google
+                        </Link>
                     )}
                 </div>
             </div>
