@@ -29,9 +29,6 @@ export default function Home() {
             <Link href="/login" className="btn-primary" id="hero-get-started">
               Get Started Free
             </Link>
-            <Link href="/dashboard" className="btn-ghost" id="hero-try-demo">
-              Try Demo →
-            </Link>
           </div>
 
           <div className="hero-social-proof">
