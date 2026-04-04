@@ -13,14 +13,10 @@ async function getSupabase() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (e) {}
+          try { cookieStore.set({ name, value, ...options }); } catch {}
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch (e) {}
+          try { cookieStore.set({ name, value: '', ...options }); } catch {}
         },
       },
     }
@@ -29,8 +25,9 @@ async function getSupabase() {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await getSupabase();
   const { is_banned } = await request.json();
 
@@ -49,20 +46,20 @@ export async function PATCH(
     const { error } = await supabase
       .from('profiles')
       .update({ is_banned })
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
-
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await getSupabase();
 
   try {
@@ -80,12 +77,11 @@ export async function DELETE(
     const { error: resumesError } = await supabase
       .from('resumes')
       .delete()
-      .eq('user_id', params.id);
+      .eq('user_id', id);
 
     if (resumesError) throw resumesError;
-
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
