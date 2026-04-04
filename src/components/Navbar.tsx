@@ -51,12 +51,11 @@ export default function Navbar() {
 
   return (
     <nav
+      className="editorial-nav"
       style={{
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: isScrolled ? 'rgba(255,255,255,0.95)' : '#ffffff',
-        borderBottom: isScrolled ? '1px solid #E5E5E5' : '1px solid #E5E5E5',
         backdropFilter: isScrolled ? 'blur(12px)' : 'none',
         transition: 'all 0.2s ease',
       }}
@@ -73,59 +72,29 @@ export default function Navbar() {
         }}
       >
         {/* Logo */}
-        <Link
-          href="/"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            textDecoration: 'none',
-          }}
-        >
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              background: '#0A0A0A',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#E8F000',
-            }}
-          >
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <div style={{
+            width: '32px', height: '32px',
+            background: 'var(--text-main)',
+            borderRadius: '4px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#E8F000',
+          }}>
             <FileText size={16} />
           </div>
-          <span
-            style={{
-              fontSize: '1.05rem',
-              fontWeight: 900,
-              letterSpacing: '-0.02em',
-              color: '#0A0A0A',
-            }}
-          >
+          <span className="editorial-nav-logo-text" style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '-0.02em' }}>
             CareerCraft
           </span>
         </Link>
 
         {/* Nav Links */}
-        <div
-          className="nav-links-desktop"
-          style={{ display: 'flex', alignItems: 'center', gap: '36px' }}
-        >
+        <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           {['Features', 'Templates', 'Pricing'].map((item) => (
             <Link
               key={item}
               href="/dashboard"
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: '#666',
-                textDecoration: 'none',
-                transition: 'color 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#0A0A0A')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#666')}
+              className="editorial-nav-link"
+              style={{ fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', transition: 'color 0.15s' }}
             >
               {item}
             </Link>
@@ -134,22 +103,16 @@ export default function Navbar() {
 
         {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            title="Toggle theme"
+            title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            className="editorial-nav-btn"
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '4px',
-              border: '1px solid #E5E5E5',
-              background: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#666',
-              transition: 'border-color 0.15s',
+              width: '36px', height: '36px', borderRadius: '4px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
@@ -159,17 +122,11 @@ export default function Navbar() {
             <>
               <Link
                 href="/dashboard"
+                className="editorial-nav-btn"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  color: '#0A0A0A',
-                  textDecoration: 'none',
-                  border: '1px solid #E5E5E5',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  fontSize: '0.875rem', fontWeight: 700,
+                  textDecoration: 'none', padding: '8px 16px', borderRadius: '4px',
                   transition: 'background 0.15s',
                 }}
               >
@@ -180,17 +137,10 @@ export default function Navbar() {
                 onClick={handleLogout}
                 title="Logout"
                 style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '4px',
-                  border: '1px solid #fca5a5',
-                  background: '#fff5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#ef4444',
-                  transition: 'background 0.15s',
+                  width: '36px', height: '36px', borderRadius: '4px',
+                  border: '1px solid #fca5a5', background: '#fff5f5',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: '#ef4444', transition: 'background 0.15s',
                 }}
               >
                 <LogOut size={15} />
@@ -200,13 +150,10 @@ export default function Navbar() {
             <>
               <Link
                 href="/login"
+                className="editorial-nav-logo-text"
                 style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  color: '#0A0A0A',
-                  textDecoration: 'none',
-                  padding: '8px 16px',
-                  transition: 'opacity 0.15s',
+                  fontSize: '0.875rem', fontWeight: 700, textDecoration: 'none',
+                  padding: '8px 16px', transition: 'opacity 0.15s',
                 }}
               >
                 Login
@@ -215,16 +162,12 @@ export default function Navbar() {
                 href="/login"
                 id="navbar-get-started"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  background: '#0A0A0A',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.875rem',
-                  padding: '10px 20px',
-                  borderRadius: '100px',
-                  textDecoration: 'none',
-                  letterSpacing: '-0.01em',
+                  display: 'inline-flex', alignItems: 'center',
+                  background: 'var(--text-main)',
+                  color: 'var(--bg-card)',
+                  fontWeight: 800, fontSize: '0.875rem',
+                  padding: '10px 20px', borderRadius: '100px',
+                  textDecoration: 'none', letterSpacing: '-0.01em',
                   transition: 'opacity 0.15s',
                 }}
               >

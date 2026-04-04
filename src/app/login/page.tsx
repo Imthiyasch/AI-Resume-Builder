@@ -29,14 +29,14 @@ export default function Login() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#F6F3F2',
+            background: 'var(--bg-app)',
             padding: '48px 16px',
         }}>
             <div style={{
                 width: '100%',
                 maxWidth: '420px',
-                background: '#ffffff',
-                border: '1px solid #E5E5E5',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '4px',
                 padding: '48px 40px',
             }}>
@@ -45,7 +45,7 @@ export default function Login() {
                     <div style={{
                         width: '56px',
                         height: '56px',
-                        background: '#0A0A0A',
+                        background: 'var(--text-main)',
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
@@ -57,7 +57,7 @@ export default function Login() {
                     <h1 style={{
                         fontSize: '1.6rem',
                         fontWeight: 900,
-                        color: '#0A0A0A',
+                        color: 'var(--text-main)',
                         letterSpacing: '-0.02em',
                         margin: 0,
                     }}>
@@ -73,8 +73,8 @@ export default function Login() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    background: '#F6F3F2',
-                    border: '1px solid #E5E5E5',
+                    background: 'var(--bg-app)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '10px 14px',
                     marginBottom: '24px',

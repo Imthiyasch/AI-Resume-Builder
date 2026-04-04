@@ -32,7 +32,7 @@ function ATSAnalysisPanel({ resumes }: { resumes: any[] }) {
   return (
     <div>
       <div style={{
-        background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
+        background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px',
         padding: '32px', marginBottom: '20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -40,8 +40,8 @@ function ATSAnalysisPanel({ resumes }: { resumes: any[] }) {
             <Gauge size={20} style={{ color: '#0A0A0A' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: 0 }}>ATS Analysis</h2>
-            <p style={{ fontSize: '0.8rem', color: '#666', margin: 0 }}>Check your resume against Applicant Tracking Systems</p>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>ATS Analysis</h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>Check your resume against Applicant Tracking Systems</p>
           </div>
         </div>
         <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: 1.6, marginBottom: '24px' }}>
@@ -49,25 +49,25 @@ function ATSAnalysisPanel({ resumes }: { resumes: any[] }) {
         </p>
 
         {resumes.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', border: '2px dashed #E5E5E5', borderRadius: '4px' }}>
-            <p style={{ color: '#999', fontSize: '0.875rem' }}>No resumes yet. Create one first to run ATS analysis.</p>
+          <div style={{ textAlign: 'center', padding: '40px', border: '2px dashed var(--border-subtle)', borderRadius: '4px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No resumes yet. Create one first to run ATS analysis.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
             {resumes.slice(0, 6).map((r) => (
               <Link key={r.id} href={`/resume/${r.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{
-                  background: '#F6F3F2', borderRadius: '4px', padding: '16px',
-                  border: '1px solid #E5E5E5', cursor: 'pointer',
+                  background: 'var(--bg-app)', borderRadius: '4px', padding: '16px',
+                  border: '1px solid var(--border-subtle)', cursor: 'pointer',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                     <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FileText size={14} style={{ color: '#0A0A0A' }} />
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {new Date(r.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                     <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0A0A0A', background: '#E8F000', padding: '2px 8px', borderRadius: '100px' }}>
@@ -89,12 +89,12 @@ function ATSAnalysisPanel({ resumes }: { resumes: any[] }) {
           { icon: AlertCircle, color: '#d97706', title: 'Avoid tables & columns', desc: 'ATS systems struggle to parse multi-column layouts.' },
           { icon: AlertCircle, color: '#d97706', title: 'No graphics or icons', desc: 'Images and icons cannot be read by most ATS systems.' },
         ].map((tip) => (
-          <div key={tip.title} style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '16px' }}>
+          <div key={tip.title} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <tip.icon size={16} style={{ color: tip.color }} />
-              <span style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A' }}>{tip.title}</span>
+              <span style={{ fontWeight: 800, fontSize: '0.875rem', color: 'var(--text-main)' }}>{tip.title}</span>
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#666', margin: 0, lineHeight: 1.5 }}>{tip.desc}</p>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{tip.desc}</p>
           </div>
         ))}
       </div>
@@ -141,8 +141,8 @@ function AIOptimizerPanel({ resumes }: { resumes: any[] }) {
 
       {/* Resume list to open */}
       {resumes.length > 0 && (
-        <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '20px' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999', marginBottom: '16px' }}>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '20px' }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '16px' }}>
             Select a Resume to Optimize
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -150,16 +150,16 @@ function AIOptimizerPanel({ resumes }: { resumes: any[] }) {
               <Link key={r.id} href={`/resume/${r.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '12px 16px', background: '#F6F3F2', borderRadius: '4px',
-                  border: '1px solid #E5E5E5',
+                  padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '4px',
+                  border: '1px solid var(--border-subtle)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FileText size={14} style={{ color: '#0A0A0A' }} />
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A' }}>{r.title}</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)' }}>{r.title}</span>
                   </div>
-                  <ArrowRight size={16} style={{ color: '#666' }} />
+                  <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
                 </div>
               </Link>
             ))}
@@ -173,8 +173,8 @@ function AIOptimizerPanel({ resumes }: { resumes: any[] }) {
 // ─── Settings Panel ───────────────────────────────────────────
 function SettingsPanel() {
   return (
-    <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
-      <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 24px' }}>Account Settings</h2>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '32px' }}>
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 24px' }}>Account Settings</h2>
       <div style={{ display: 'grid', gap: '20px' }}>
         {[
           { label: 'Email Notifications', desc: 'Receive tips and resume improvement reminders', checked: true },
@@ -183,11 +183,11 @@ function SettingsPanel() {
         ].map((s) => (
           <div key={s.label} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '16px', background: '#F6F3F2', borderRadius: '4px', border: '1px solid #E5E5E5',
+            padding: '16px', background: 'var(--bg-app)', borderRadius: '4px', border: '1px solid var(--border-subtle)',
           }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A' }}>{s.label}</div>
-              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '2px' }}>{s.desc}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)' }}>{s.label}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{s.desc}</div>
             </div>
             <div style={{
               width: '40px', height: '22px',
@@ -213,9 +213,9 @@ function SettingsPanel() {
 function SupportPanel() {
   return (
     <div style={{ display: 'grid', gap: '16px' }}>
-      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 8px' }}>Need Help?</h2>
-        <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '24px' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '32px' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 8px' }}>Need Help?</h2>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
           Our support team is here to help you land your dream job.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -225,15 +225,15 @@ function SupportPanel() {
           ].map((c) => (
             <a key={c.label} href={c.action} style={{ textDecoration: 'none' }}>
               <div style={{
-                background: '#F6F3F2', border: '1px solid #E5E5E5', borderRadius: '4px',
+                background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: '4px',
                 padding: '20px', display: 'flex', alignItems: 'center', gap: '12px',
               }}>
                 <div style={{ width: '36px', height: '36px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <c.icon size={18} style={{ color: '#0A0A0A' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A' }}>{c.label}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#666' }}>{c.desc}</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.875rem', color: 'var(--text-main)' }}>{c.label}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.desc}</div>
                 </div>
               </div>
             </a>
@@ -241,17 +241,17 @@ function SupportPanel() {
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 16px' }}>FAQ</h3>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '32px' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px' }}>FAQ</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {[
             { q: 'How does ATS scoring work?', a: 'Our AI analyzes your resume against common ATS criteria including keywords, formatting, and section completeness.' },
             { q: 'Can I export my resume as PDF?', a: 'Yes! Use the Export button in the resume editor to download a PDF version of your resume.' },
             { q: 'How many resumes can I create?', a: 'Free users can create up to 3 resumes. Upgrade to Pro for unlimited resumes.' },
           ].map((faq) => (
-            <div key={faq.q} style={{ padding: '16px', background: '#F6F3F2', borderRadius: '4px' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A', marginBottom: '6px' }}>{faq.q}</div>
-              <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>{faq.a}</div>
+            <div key={faq.q} style={{ padding: '16px', background: 'var(--bg-app)', borderRadius: '4px' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.875rem', color: 'var(--text-main)', marginBottom: '6px' }}>{faq.q}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{faq.a}</div>
             </div>
           ))}
         </div>
@@ -366,7 +366,7 @@ function DashboardContent() {
   };
 
   return (
-    <div style={{ height: 'calc(100vh - 64px)', display: 'flex', overflow: 'hidden', background: '#F6F3F2' }}>
+    <div style={{ height: 'calc(100vh - 64px)', display: 'flex', overflow: 'hidden', background: 'var(--bg-app)' }}>
       <DashboardSidebar onCreateNew={handleCreateNew} />
 
       <main style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
@@ -375,10 +375,10 @@ function DashboardContent() {
           {/* ── Header ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '16px', alignItems: 'start', marginBottom: '32px' }}>
             <div>
-              <h1 style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#0A0A0A', margin: 0 }}>
+              <h1 style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--text-main)', margin: 0 }}>
                 {TAB_TITLES[activeTab] ?? 'My Resumes'}
               </h1>
-              <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '4px' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                 You&apos;re 3 steps away from your dream job.
               </p>
             </div>
@@ -389,7 +389,7 @@ function DashboardContent() {
               { icon: Target,     label: 'Avg ATS Score',  value: '84%' },
             ].map((stat) => (
               <div key={stat.label} style={{
-                background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
+                background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px',
                 padding: '14px 20px', display: 'flex', alignItems: 'center', gap: '12px', minWidth: '160px',
               }}>
                 <div style={{
@@ -399,7 +399,7 @@ function DashboardContent() {
                   <stat.icon size={18} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0A0A0A', lineHeight: 1 }}>{stat.value}</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1 }}>{stat.value}</div>
                   <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', marginTop: '2px' }}>{stat.label}</div>
                 </div>
               </div>
@@ -426,22 +426,22 @@ function DashboardContent() {
                     placeholder="Find a resume..."
                     style={{
                       width: '100%', height: '42px', paddingLeft: '42px', paddingRight: '16px',
-                      background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
-                      fontSize: '0.875rem', fontWeight: 500, color: '#0A0A0A', outline: 'none', boxSizing: 'border-box',
+                      background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '4px',
+                      fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-main)', outline: 'none', boxSizing: 'border-box',
                     }}
                     onFocus={e => (e.target.style.borderColor = '#E8F000')}
-                    onBlur={e => (e.target.style.borderColor = '#E5E5E5')}
+                    onBlur={e => (e.target.style.borderColor = 'var(--border-subtle)')}
                   />
                 </div>
 
                 {[{ icon: Filter, label: 'Filter' }, { icon: Clock, label: 'Recent' }].map((btn) => (
                   <button key={btn.label} style={{
-                    height: '42px', padding: '0 18px', background: '#fff', border: '1px solid #E5E5E5',
-                    borderRadius: '4px', fontSize: '0.875rem', fontWeight: 700, color: '#0A0A0A',
+                    height: '42px', padding: '0 18px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
+                    borderRadius: '4px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)',
                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background 0.15s',
                   }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#F6F3F2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-app)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-card)')}
                   >
                     <btn.icon size={16} style={{ color: '#666' }} />
                     {btn.label}
@@ -470,11 +470,11 @@ function DashboardContent() {
                       animate={{ opacity: 1, y: 0 }}
                       style={{
                         padding: '80px 40px', textAlign: 'center',
-                        background: '#fff', border: '2px dashed #E5E5E5', borderRadius: '4px',
+                        background: 'var(--bg-card)', border: '2px dashed var(--border-subtle)', borderRadius: '4px',
                       }}
                     >
                       <div style={{
-                        width: '64px', height: '64px', background: '#F6F3F2', borderRadius: '4px',
+                        width: '64px', height: '64px', background: 'var(--bg-app)', borderRadius: '4px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
                       }}>
                         <FileText size={32} style={{ color: '#ccc' }} />
@@ -547,11 +547,12 @@ function ResumeCard({
 
   return (
     <div
+      className={hovered ? 'resume-card-hovered' : ''}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff',
-        border: `1px solid ${hovered ? '#0A0A0A' : '#E5E5E5'}`,
+        background: 'var(--bg-card)',
+        border: `1px solid var(--border-subtle)`,
         borderRadius: '4px', padding: '20px', display: 'flex',
         flexDirection: 'column', height: '100%', transition: 'border-color 0.15s, transform 0.15s',
         transform: hovered ? 'translateY(-3px)' : 'none', position: 'relative', overflow: 'hidden',
@@ -563,10 +564,10 @@ function ResumeCard({
           <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0A0A' }}>
             <FileText size={14} />
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999' }}>Resume</span>
+          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Resume</span>
         </div>
         <div style={{ display: 'flex', gap: '4px', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
-          <button onClick={(e) => onStartRename(resume, e)} title="Rename" style={{ width: '28px', height: '28px', borderRadius: '4px', border: '1px solid #E5E5E5', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#666' }}>
+          <button onClick={(e) => onStartRename(resume, e)} title="Rename" style={{ width: '28px', height: '28px', borderRadius: '4px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}>
             <Pencil size={13} />
           </button>
           <button onClick={(e) => onDelete(resume.id, e)} title="Delete" style={{ width: '28px', height: '28px', borderRadius: '4px', border: '1px solid #fca5a5', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#ef4444' }}>
@@ -577,10 +578,10 @@ function ResumeCard({
 
       {/* Preview */}
       <Link href={`/resume/${resume.id}`} style={{ textDecoration: 'none', display: 'block', flex: 1 }}>
-        <div style={{ aspectRatio: '3/4', background: '#F6F3F2', borderRadius: '4px', marginBottom: '16px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E5E5E5' }}>
+        <div style={{ aspectRatio: '3/4', background: 'var(--bg-app)', borderRadius: '4px', marginBottom: '16px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-subtle)' }}>
           <div style={{ width: '70%', display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.35 }}>
-            <div style={{ height: '10px', background: '#0A0A0A', borderRadius: '2px', width: '100%' }} />
-            <div style={{ height: '6px', background: '#888', borderRadius: '2px', width: '70%' }} />
+            <div style={{ height: '10px', background: 'var(--text-main)', borderRadius: '2px', width: '100%' }} />
+            <div style={{ height: '6px', background: 'var(--text-muted)', borderRadius: '2px', width: '70%' }} />
             <div style={{ height: '1px', background: '#E8F000', borderRadius: '1px', width: '100%', margin: '4px 0' }} />
             <div style={{ height: '5px', background: '#ccc', borderRadius: '2px', width: '90%' }} />
             <div style={{ height: '5px', background: '#ccc', borderRadius: '2px', width: '75%' }} />
