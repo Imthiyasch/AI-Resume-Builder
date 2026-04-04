@@ -39,15 +39,15 @@ export default function DashboardSidebar({ onCreateNew }: SidebarProps) {
   }, []);
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: FileText,        label: 'My Resumes', href: '/dashboard#resumes' },
-    { icon: Gauge,           label: 'ATS Analysis', href: '/dashboard#ats' },
-    { icon: Sparkles,        label: 'AI Optimizer', href: '/dashboard#ai' },
+    { icon: LayoutDashboard, label: 'Dashboard',   href: '/dashboard' },
+    { icon: FileText,        label: 'My Resumes',  href: '/dashboard?tab=resumes' },
+    { icon: Gauge,           label: 'ATS Analysis', href: '/dashboard?tab=ats' },
+    { icon: Sparkles,        label: 'AI Optimizer', href: '/dashboard?tab=ai' },
   ];
 
   const bottomItems = [
-    { icon: Settings,    label: 'Settings', href: '/dashboard#settings' },
-    { icon: HelpCircle,  label: 'Support',  href: '/dashboard#support' },
+    { icon: Settings,    label: 'Settings', href: '/dashboard?tab=settings' },
+    { icon: HelpCircle,  label: 'Support',  href: '/dashboard?tab=support' },
   ];
 
   return (
@@ -133,7 +133,7 @@ export default function DashboardSidebar({ onCreateNew }: SidebarProps) {
                 padding: '10px 12px',
                 borderRadius: '4px',
                 fontSize: '0.875rem',
-                fontWeight: active ? 800 : 600,
+                fontWeight: (active || pathname + '?tab=' + item.href.split('?tab=')[1] === item.href) ? 800 : 600,
                 color: active ? '#0A0A0A' : '#666',
                 background: active ? '#E8F000' : 'transparent',
                 textDecoration: 'none',

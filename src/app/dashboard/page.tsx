@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Plus, FileText, Loader2, Calendar, Trash2, Pencil,
   Check, Search, Sparkles, TrendingUp, Target, Clock,
-  Filter, ArrowRight,
+  Filter, ArrowRight, Gauge, CheckCircle2, AlertCircle, Mail, MessageCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -17,11 +17,8 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 function ResumeSkeleton() {
   return (
     <div style={{
-      background: '#fff',
-      border: '1px solid #E5E5E5',
-      borderRadius: '4px',
-      padding: '20px',
-      animation: 'pulse 1.5s infinite',
+      background: '#fff', border: '1px solid #E5E5E5',
+      borderRadius: '4px', padding: '20px',
     }}>
       <div style={{ aspectRatio: '3/4', background: '#F0EDEC', borderRadius: '4px', marginBottom: '16px' }} />
       <div style={{ height: '12px', background: '#E5E2E1', borderRadius: '2px', width: '75%', marginBottom: '8px' }} />
@@ -30,8 +27,245 @@ function ResumeSkeleton() {
   );
 }
 
-export default function Dashboard() {
+// ─── ATS Analysis Panel ───────────────────────────────────────
+function ATSAnalysisPanel({ resumes }: { resumes: any[] }) {
+  return (
+    <div>
+      <div style={{
+        background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
+        padding: '32px', marginBottom: '20px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ width: '40px', height: '40px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Gauge size={20} style={{ color: '#0A0A0A' }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: 0 }}>ATS Analysis</h2>
+            <p style={{ fontSize: '0.8rem', color: '#666', margin: 0 }}>Check your resume against Applicant Tracking Systems</p>
+          </div>
+        </div>
+        <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: 1.6, marginBottom: '24px' }}>
+          Open any of your resumes and use the built-in <strong style={{ color: '#0A0A0A' }}>ATS Checker</strong> panel on the right side of the editor to run a detailed analysis. You can paste a job description for a tailored match score.
+        </p>
+
+        {resumes.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', border: '2px dashed #E5E5E5', borderRadius: '4px' }}>
+            <p style={{ color: '#999', fontSize: '0.875rem' }}>No resumes yet. Create one first to run ATS analysis.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+            {resumes.slice(0, 6).map((r) => (
+              <Link key={r.id} href={`/resume/${r.id}`} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  background: '#F6F3F2', borderRadius: '4px', padding: '16px',
+                  border: '1px solid #E5E5E5', cursor: 'pointer',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FileText size={14} style={{ color: '#0A0A0A' }} />
+                    </div>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#666' }}>
+                      {new Date(r.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0A0A0A', background: '#E8F000', padding: '2px 8px', borderRadius: '100px' }}>
+                      Open →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tips */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {[
+          { icon: CheckCircle2, color: '#16a34a', title: 'Use standard headings', desc: 'Stick to "Work Experience", "Education", "Skills" — avoid creative titles.' },
+          { icon: CheckCircle2, color: '#16a34a', title: 'Include keywords', desc: 'Mirror the exact wording from the job description in your resume.' },
+          { icon: AlertCircle, color: '#d97706', title: 'Avoid tables & columns', desc: 'ATS systems struggle to parse multi-column layouts.' },
+          { icon: AlertCircle, color: '#d97706', title: 'No graphics or icons', desc: 'Images and icons cannot be read by most ATS systems.' },
+        ].map((tip) => (
+          <div key={tip.title} style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <tip.icon size={16} style={{ color: tip.color }} />
+              <span style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A' }}>{tip.title}</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: '#666', margin: 0, lineHeight: 1.5 }}>{tip.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AI Optimizer Panel ───────────────────────────────────────
+function AIOptimizerPanel({ resumes }: { resumes: any[] }) {
+  return (
+    <div>
+      <div style={{
+        background: '#0A0A0A', borderRadius: '4px',
+        padding: '32px', marginBottom: '20px', color: '#fff',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ width: '40px', height: '40px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={20} style={{ color: '#0A0A0A' }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', margin: 0 }}>AI Optimizer</h2>
+            <p style={{ fontSize: '0.8rem', color: '#999', margin: 0 }}>AI-powered suggestions to perfect your resume</p>
+          </div>
+        </div>
+        <p style={{ fontSize: '0.875rem', color: '#aaa', lineHeight: 1.6, marginBottom: '24px' }}>
+          Our AI analyzes your resume content and gives you targeted suggestions to increase your chances of getting interviews. Open any resume and use the <strong style={{ color: '#E8F000' }}>AI Optimizer</strong> tab in the editor sidebar.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Impact Analysis', desc: 'Quantify your achievements' },
+            { label: 'Keyword Match', desc: 'Job-specific keyword gaps' },
+            { label: 'Tone Check', desc: 'Professional language review' },
+          ].map((f) => (
+            <div key={f.label} style={{ background: '#1A1A1A', borderRadius: '4px', padding: '16px' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#E8F000', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                {f.label}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#888' }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resume list to open */}
+      {resumes.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '20px' }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999', marginBottom: '16px' }}>
+            Select a Resume to Optimize
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {resumes.map((r) => (
+              <Link key={r.id} href={`/resume/${r.id}`} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px', background: '#F6F3F2', borderRadius: '4px',
+                  border: '1px solid #E5E5E5',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FileText size={14} style={{ color: '#0A0A0A' }} />
+                    </div>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A' }}>{r.title}</span>
+                  </div>
+                  <ArrowRight size={16} style={{ color: '#666' }} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Settings Panel ───────────────────────────────────────────
+function SettingsPanel() {
+  return (
+    <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 24px' }}>Account Settings</h2>
+      <div style={{ display: 'grid', gap: '20px' }}>
+        {[
+          { label: 'Email Notifications', desc: 'Receive tips and resume improvement reminders', checked: true },
+          { label: 'Weekly ATS Reports', desc: 'Get your weekly resume health summary', checked: false },
+          { label: 'AI Suggestions', desc: 'Let AI proactively suggest resume improvements', checked: true },
+        ].map((s) => (
+          <div key={s.label} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '16px', background: '#F6F3F2', borderRadius: '4px', border: '1px solid #E5E5E5',
+          }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A0A0A' }}>{s.label}</div>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '2px' }}>{s.desc}</div>
+            </div>
+            <div style={{
+              width: '40px', height: '22px',
+              background: s.checked ? '#E8F000' : '#E5E5E5',
+              borderRadius: '100px', cursor: 'pointer', position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute', top: '3px',
+                left: s.checked ? '20px' : '3px',
+                width: '16px', height: '16px',
+                background: '#0A0A0A', borderRadius: '50%',
+                transition: 'left 0.2s',
+              }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Support Panel ────────────────────────────────────────────
+function SupportPanel() {
+  return (
+    <div style={{ display: 'grid', gap: '16px' }}>
+      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 8px' }}>Need Help?</h2>
+        <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '24px' }}>
+          Our support team is here to help you land your dream job.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {[
+            { icon: Mail, label: 'Email Support', desc: 'support@careercraft.ai', action: 'mailto:support@careercraft.ai' },
+            { icon: MessageCircle, label: 'Live Chat', desc: 'Available Mon–Fri, 9am–5pm', action: '#' },
+          ].map((c) => (
+            <a key={c.label} href={c.action} style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: '#F6F3F2', border: '1px solid #E5E5E5', borderRadius: '4px',
+                padding: '20px', display: 'flex', alignItems: 'center', gap: '12px',
+              }}>
+                <div style={{ width: '36px', height: '36px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <c.icon size={18} style={{ color: '#0A0A0A' }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A' }}>{c.label}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#666' }}>{c.desc}</div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px', padding: '32px' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 16px' }}>FAQ</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[
+            { q: 'How does ATS scoring work?', a: 'Our AI analyzes your resume against common ATS criteria including keywords, formatting, and section completeness.' },
+            { q: 'Can I export my resume as PDF?', a: 'Yes! Use the Export button in the resume editor to download a PDF version of your resume.' },
+            { q: 'How many resumes can I create?', a: 'Free users can create up to 3 resumes. Upgrade to Pro for unlimited resumes.' },
+          ].map((faq) => (
+            <div key={faq.q} style={{ padding: '16px', background: '#F6F3F2', borderRadius: '4px' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0A0A0A', marginBottom: '6px' }}>{faq.q}</div>
+              <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: 1.5 }}>{faq.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Dashboard ───────────────────────────────────────────
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'resumes';
+
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -123,6 +357,14 @@ export default function Dashboard() {
     r.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const TAB_TITLES: Record<string, string> = {
+    resumes: 'My Resumes',
+    ats: 'ATS Analysis',
+    ai: 'AI Optimizer',
+    settings: 'Settings',
+    support: 'Support',
+  };
+
   return (
     <div style={{ height: 'calc(100vh - 64px)', display: 'flex', overflow: 'hidden', background: '#F6F3F2' }}>
       <DashboardSidebar onCreateNew={handleCreateNew} />
@@ -131,10 +373,10 @@ export default function Dashboard() {
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 40px 60px' }}>
 
           {/* ── Header ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '16px', alignItems: 'start', marginBottom: '40px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '16px', alignItems: 'start', marginBottom: '32px' }}>
             <div>
               <h1 style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#0A0A0A', margin: 0 }}>
-                My Resumes
+                {TAB_TITLES[activeTab] ?? 'My Resumes'}
               </h1>
               <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '4px' }}>
                 You&apos;re 3 steps away from your dream job.
@@ -147,21 +389,12 @@ export default function Dashboard() {
               { icon: Target,     label: 'Avg ATS Score',  value: '84%' },
             ].map((stat) => (
               <div key={stat.label} style={{
-                background: '#fff',
-                border: '1px solid #E5E5E5',
-                borderRadius: '4px',
-                padding: '14px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                minWidth: '160px',
+                background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
+                padding: '14px 20px', display: 'flex', alignItems: 'center', gap: '12px', minWidth: '160px',
               }}>
                 <div style={{
-                  width: '36px', height: '36px',
-                  background: '#E8F000',
-                  borderRadius: '4px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#0A0A0A',
+                  width: '36px', height: '36px', background: '#E8F000', borderRadius: '4px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0A0A',
                 }}>
                   <stat.icon size={18} />
                 </div>
@@ -173,173 +406,134 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* ── Action Bar ── */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap' }}>
-            {/* Search */}
-            <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Find a resume..."
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  paddingLeft: '42px',
-                  paddingRight: '16px',
-                  background: '#fff',
-                  border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: '#0A0A0A',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={e => (e.target.style.borderColor = '#E8F000')}
-                onBlur={e => (e.target.style.borderColor = '#E5E5E5')}
-              />
-            </div>
+          {/* ── Tab-specific content ── */}
+          {activeTab === 'ats' && <ATSAnalysisPanel resumes={resumes} />}
+          {activeTab === 'ai'  && <AIOptimizerPanel resumes={resumes} />}
+          {activeTab === 'settings' && <SettingsPanel />}
+          {activeTab === 'support'  && <SupportPanel />}
 
-            {/* Filter / Recent buttons */}
-            {[
-              { icon: Filter, label: 'Filter' },
-              { icon: Clock,  label: 'Recent' },
-            ].map((btn) => (
-              <button key={btn.label} style={{
-                height: '42px',
-                padding: '0 18px',
-                background: '#fff',
-                border: '1px solid #E5E5E5',
-                borderRadius: '4px',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                color: '#0A0A0A',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'background 0.15s',
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#F6F3F2')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
-              >
-                <btn.icon size={16} style={{ color: '#666' }} />
-                {btn.label}
-              </button>
-            ))}
-
-            {/* New Resume (mobile visible) */}
-            <button
-              onClick={handleCreateNew}
-              id="dash-new-resume-btn"
-              style={{
-                height: '42px',
-                padding: '0 20px',
-                background: '#0A0A0A',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '100px',
-                fontSize: '0.875rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                letterSpacing: '-0.01em',
-                marginLeft: 'auto',
-              }}
-            >
-              <Plus size={16} /> New Resume
-            </button>
-          </div>
-
-          {/* ── Content Grid ── */}
-          {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-              {[1, 2, 3].map(i => <ResumeSkeleton key={i} />)}
-            </div>
-          ) : (
-            <AnimatePresence mode="popLayout">
-              {filtered.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    padding: '80px 40px',
-                    textAlign: 'center',
-                    background: '#fff',
-                    border: '2px dashed #E5E5E5',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <div style={{
-                    width: '64px', height: '64px',
-                    background: '#F6F3F2',
-                    borderRadius: '4px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 20px',
-                  }}>
-                    <FileText size={32} style={{ color: '#ccc' }} />
-                  </div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 8px' }}>
-                    No resumes found
-                  </h3>
-                  <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '24px' }}>
-                    {searchQuery
-                      ? `No results for "${searchQuery}".`
-                      : 'Start your professional journey today!'}
-                  </p>
-                  <button
-                    onClick={handleCreateNew}
+          {/* ── Resumes Tab (default) ── */}
+          {(activeTab === 'resumes' || !['ats','ai','settings','support'].includes(activeTab)) && (
+            <>
+              {/* Action Bar */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
+                  <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Find a resume..."
                     style={{
-                      padding: '12px 28px',
-                      background: '#E8F000',
-                      color: '#0A0A0A',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontWeight: 800,
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
+                      width: '100%', height: '42px', paddingLeft: '42px', paddingRight: '16px',
+                      background: '#fff', border: '1px solid #E5E5E5', borderRadius: '4px',
+                      fontSize: '0.875rem', fontWeight: 500, color: '#0A0A0A', outline: 'none', boxSizing: 'border-box',
                     }}
+                    onFocus={e => (e.target.style.borderColor = '#E8F000')}
+                    onBlur={e => (e.target.style.borderColor = '#E5E5E5')}
+                  />
+                </div>
+
+                {[{ icon: Filter, label: 'Filter' }, { icon: Clock, label: 'Recent' }].map((btn) => (
+                  <button key={btn.label} style={{
+                    height: '42px', padding: '0 18px', background: '#fff', border: '1px solid #E5E5E5',
+                    borderRadius: '4px', fontSize: '0.875rem', fontWeight: 700, color: '#0A0A0A',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background 0.15s',
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#F6F3F2')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
                   >
-                    Create First Resume
+                    <btn.icon size={16} style={{ color: '#666' }} />
+                    {btn.label}
                   </button>
-                </motion.div>
+                ))}
+
+                <button onClick={handleCreateNew} id="dash-new-resume-btn" style={{
+                  height: '42px', padding: '0 20px', background: '#0A0A0A', color: '#fff', border: 'none',
+                  borderRadius: '100px', fontSize: '0.875rem', fontWeight: 800, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '-0.01em', marginLeft: 'auto',
+                }}>
+                  <Plus size={16} /> New Resume
+                </button>
+              </div>
+
+              {/* Content Grid */}
+              {loading ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                  {[1, 2, 3].map(i => <ResumeSkeleton key={i} />)}
+                </div>
               ) : (
-                <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', paddingBottom: '40px' }}>
-                  <AnimatePresence>
-                    {filtered.map((resume, i) => (
-                      <motion.div
-                        key={resume.id}
-                        layout
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: i * 0.04 }}
-                      >
-                        <ResumeCard
-                          resume={resume}
-                          deletingId={deletingId}
-                          renamingId={renamingId}
-                          renameValue={renameValue}
-                          setRenameValue={setRenameValue}
-                          setRenamingId={setRenamingId}
-                          onDelete={handleDelete}
-                          onStartRename={startRename}
-                          onCommitRename={commitRename}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
+                <AnimatePresence mode="popLayout">
+                  {filtered.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        padding: '80px 40px', textAlign: 'center',
+                        background: '#fff', border: '2px dashed #E5E5E5', borderRadius: '4px',
+                      }}
+                    >
+                      <div style={{
+                        width: '64px', height: '64px', background: '#F6F3F2', borderRadius: '4px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
+                      }}>
+                        <FileText size={32} style={{ color: '#ccc' }} />
+                      </div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', margin: '0 0 8px' }}>
+                        No resumes found
+                      </h3>
+                      <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '24px' }}>
+                        {searchQuery ? `No results for "${searchQuery}".` : 'Start your professional journey today!'}
+                      </p>
+                      <button onClick={handleCreateNew} style={{
+                        padding: '12px 28px', background: '#E8F000', color: '#0A0A0A',
+                        border: 'none', borderRadius: '4px', fontWeight: 800, fontSize: '0.875rem', cursor: 'pointer',
+                      }}>
+                        Create First Resume
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', paddingBottom: '40px' }}>
+                      <AnimatePresence>
+                        {filtered.map((resume, i) => (
+                          <motion.div
+                            key={resume.id} layout
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ delay: i * 0.04 }}
+                          >
+                            <ResumeCard
+                              resume={resume}
+                              deletingId={deletingId}
+                              renamingId={renamingId}
+                              renameValue={renameValue}
+                              setRenameValue={setRenameValue}
+                              setRenamingId={setRenamingId}
+                              onDelete={handleDelete}
+                              onStartRename={startRename}
+                              onCommitRename={commitRename}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               )}
-            </AnimatePresence>
+            </>
           )}
         </div>
       </main>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}><Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} /></div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
 
@@ -358,75 +552,32 @@ function ResumeCard({
       style={{
         background: '#fff',
         border: `1px solid ${hovered ? '#0A0A0A' : '#E5E5E5'}`,
-        borderRadius: '4px',
-        padding: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        transition: 'border-color 0.15s, transform 0.15s',
-        transform: hovered ? 'translateY(-3px)' : 'none',
-        position: 'relative',
-        overflow: 'hidden',
+        borderRadius: '4px', padding: '20px', display: 'flex',
+        flexDirection: 'column', height: '100%', transition: 'border-color 0.15s, transform 0.15s',
+        transform: hovered ? 'translateY(-3px)' : 'none', position: 'relative', overflow: 'hidden',
       }}
     >
-      {/* Card top actions */}
+      {/* Top actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '28px', height: '28px', background: '#E8F000',
-            borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#0A0A0A',
-          }}>
+          <div style={{ width: '28px', height: '28px', background: '#E8F000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0A0A' }}>
             <FileText size={14} />
           </div>
           <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#999' }}>Resume</span>
         </div>
-
         <div style={{ display: 'flex', gap: '4px', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
-          <button
-            onClick={(e) => onStartRename(resume, e)}
-            title="Rename"
-            style={{
-              width: '28px', height: '28px', borderRadius: '4px',
-              border: '1px solid #E5E5E5', background: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#666',
-            }}
-          >
+          <button onClick={(e) => onStartRename(resume, e)} title="Rename" style={{ width: '28px', height: '28px', borderRadius: '4px', border: '1px solid #E5E5E5', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#666' }}>
             <Pencil size={13} />
           </button>
-          <button
-            onClick={(e) => onDelete(resume.id, e)}
-            title="Delete"
-            style={{
-              width: '28px', height: '28px', borderRadius: '4px',
-              border: '1px solid #fca5a5', background: '#fff5f5',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#ef4444',
-            }}
-          >
-            {deletingId === resume.id
-              ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
-              : <Trash2 size={13} />}
+          <button onClick={(e) => onDelete(resume.id, e)} title="Delete" style={{ width: '28px', height: '28px', borderRadius: '4px', border: '1px solid #fca5a5', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#ef4444' }}>
+            {deletingId === resume.id ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
           </button>
         </div>
       </div>
 
-      {/* Preview box */}
+      {/* Preview */}
       <Link href={`/resume/${resume.id}`} style={{ textDecoration: 'none', display: 'block', flex: 1 }}>
-        <div style={{
-          aspectRatio: '3/4',
-          background: '#F6F3F2',
-          borderRadius: '4px',
-          marginBottom: '16px',
-          position: 'relative',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid #E5E5E5',
-        }}>
-          {/* Mock lines */}
+        <div style={{ aspectRatio: '3/4', background: '#F6F3F2', borderRadius: '4px', marginBottom: '16px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E5E5E5' }}>
           <div style={{ width: '70%', display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.35 }}>
             <div style={{ height: '10px', background: '#0A0A0A', borderRadius: '2px', width: '100%' }} />
             <div style={{ height: '6px', background: '#888', borderRadius: '2px', width: '70%' }} />
@@ -435,75 +586,34 @@ function ResumeCard({
             <div style={{ height: '5px', background: '#ccc', borderRadius: '2px', width: '75%' }} />
             <div style={{ height: '5px', background: '#ccc', borderRadius: '2px', width: '60%' }} />
           </div>
-
-          {/* ATS Badge */}
-          <div style={{
-            position: 'absolute', top: '10px', right: '10px',
-            background: '#E8F000', color: '#0A0A0A',
-            fontSize: '0.6rem', fontWeight: 800,
-            padding: '3px 8px', borderRadius: '100px',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}>
+          <div style={{ position: 'absolute', top: '10px', right: '10px', background: '#E8F000', color: '#0A0A0A', fontSize: '0.6rem', fontWeight: 800, padding: '3px 8px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Target size={10} />92 pts
           </div>
-
-          {/* Hover overlay */}
           {hovered && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'rgba(232,240,0,0.12)',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', gap: '8px',
-            }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '50%',
-                background: '#0A0A0A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8F000',
-              }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(232,240,0,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#0A0A0A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8F000' }}>
                 <ArrowRight size={20} />
               </div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0A0A0A' }}>
-                Edit Now
-              </span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0A0A0A' }}>Edit Now</span>
             </div>
           )}
         </div>
 
-        {/* Metadata */}
         <div>
           {renamingId === resume.id ? (
             <div style={{ display: 'flex', gap: '6px' }} onClick={e => e.preventDefault()}>
               <input
-                autoFocus
-                value={renameValue}
+                autoFocus value={renameValue}
                 onChange={e => setRenameValue(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') onCommitRename(resume.id);
-                  if (e.key === 'Escape') setRenamingId(null);
-                }}
-                style={{
-                  flex: 1, border: '2px solid #E8F000', borderRadius: '4px',
-                  padding: '6px 10px', fontSize: '0.875rem', fontWeight: 700,
-                  outline: 'none', background: '#fff', color: '#0A0A0A',
-                }}
+                onKeyDown={e => { if (e.key === 'Enter') onCommitRename(resume.id); if (e.key === 'Escape') setRenamingId(null); }}
+                style={{ flex: 1, border: '2px solid #E8F000', borderRadius: '4px', padding: '6px 10px', fontSize: '0.875rem', fontWeight: 700, outline: 'none', background: '#fff', color: '#0A0A0A' }}
               />
-              <button
-                onClick={(e) => onCommitRename(resume.id, e)}
-                style={{
-                  padding: '6px 10px', background: '#E8F000', border: 'none',
-                  borderRadius: '4px', cursor: 'pointer', color: '#0A0A0A', fontWeight: 800,
-                }}
-              >
+              <button onClick={(e) => onCommitRename(resume.id, e)} style={{ padding: '6px 10px', background: '#E8F000', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#0A0A0A', fontWeight: 800 }}>
                 <Check size={16} />
               </button>
             </div>
           ) : (
-            <h3 style={{
-              fontSize: '0.95rem', fontWeight: 800, color: '#0A0A0A',
-              margin: 0, letterSpacing: '-0.01em',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0A0A0A', margin: 0, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {resume.title}
             </h3>
           )}
@@ -515,14 +625,9 @@ function ResumeCard({
                 {new Date(resume.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
               </span>
             </div>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '4px',
-              background: '#F6F3F2', padding: '3px 8px', borderRadius: '100px',
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F6F3F2', padding: '3px 8px', borderRadius: '100px' }}>
               <Sparkles size={11} style={{ color: '#0A0A0A' }} />
-              <span style={{ fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#0A0A0A' }}>
-                Optimized
-              </span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#0A0A0A' }}>Optimized</span>
             </div>
           </div>
         </div>
